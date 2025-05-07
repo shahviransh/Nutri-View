@@ -23,6 +23,7 @@ from services import (
     process_geospatial_data,
     export_map_service,
     fetch_geojson_colors,
+    convert_excels_to_db_service,
 )
 from utils import shutdown_server, clear_cache
 from validate import (
@@ -79,7 +80,6 @@ def register_routes(app, cache):
         return jsonify(access_token=access_token)
 
     @app.route("/api/logout", methods=["POST"])
-    @jwt_required()
     def logout():
         """
         Logout the user by revoking the token.
@@ -105,7 +105,6 @@ def register_routes(app, cache):
             return jsonify({"valid": False}), 401
 
     @app.route("/api/upload_folder", methods=["POST"])
-    @jwt_required()
     def upload_folder():
         """
         Endpoint to upload a folder with files to the server.
@@ -138,7 +137,6 @@ def register_routes(app, cache):
         )
 
     @app.route("/api/get_data", methods=["GET"])
-    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_data():
         data = request.args
@@ -154,7 +152,6 @@ def register_routes(app, cache):
 
     @app.route("/api/export_data", methods=["GET", "POST"])
     # This endpoint is not cached because the file is generated dynamically
-    @jwt_required()
     def export_data():
         data = request.args if request.method == "GET" else request.json
         validation_response = validate_export_data_args(data)
@@ -187,7 +184,6 @@ def register_routes(app, cache):
         )
 
     @app.route("/api/get_tables", methods=["GET"])
-    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_tables():
         data = request.args
@@ -203,7 +199,6 @@ def register_routes(app, cache):
         return jsonify(tables.get("tables"))
 
     @app.route("/api/list_files", methods=["GET"])
-    @jwt_required()
     def list_files():
         """
         Endpoint to list all files and directories in the specified path.
@@ -220,7 +215,6 @@ def register_routes(app, cache):
         return jsonify(files_and_folders.get("files_and_folders"))
 
     @app.route("/api/get_table_details", methods=["GET"])
-    @jwt_required()
     @cache.cached(
         timeout=300, query_string=True
     )  # Cache this endpoint for 2 minutes (120 seconds)
@@ -240,7 +234,6 @@ def register_routes(app, cache):
         return jsonify(columns_and_time_range_dict)
 
     @app.route("/api/geospatial", methods=["GET"])
-    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def geospatial():
         """
@@ -258,7 +251,6 @@ def register_routes(app, cache):
         return jsonify(geo_data)
 
     @app.route("/api/geotiff/<path:filename>", methods=["GET"])
-    @jwt_required()
     def serve_tif(filename):
         """
         Serve the TIF file from the specified path.
@@ -278,7 +270,6 @@ def register_routes(app, cache):
         return send_file(filename, mimetype="image/png", as_attachment=True)
 
     @app.route("/api/get_geojson_colors", methods=["GET"])
-    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_geojson_colors():
         """
@@ -296,7 +287,6 @@ def register_routes(app, cache):
         return jsonify(colors)
 
     @app.route("/api/export_map", methods=["POST"])
-    @jwt_required()
     def export_map():
         """
         API endpoint to export the map image.
@@ -319,6 +309,34 @@ def register_routes(app, cache):
         return send_file(
             file_path.get("file_path"), mimetype=mimetype, as_attachment=True
         )
+    
+    """    
+    Testing with curl:
+    curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx"  http://127.0.0.1:5000/api/convert_excels_to_db
+    """
+    @app.route("/api/convert_excels_to_db", methods=["POST"])
+    def convert_excels_to_db():
+        """
+        Convert multiple uploaded Excel files into a single SQLite database.
+        Each sheet in each Excel file is treated as a table.
+        """
+        excel_files = request.files.getlist("files")
+        if not excel_files:
+            return jsonify({"error": "No files uploaded"})
+        
+        # Check if the files are Excel files
+        for file in excel_files:
+            if not file.filename.endswith((".xlsx", ".xls")):
+                return jsonify({"error": "Only Excel files are allowed"})
+        
+        # Call the service to convert the Excel files to a database
+        result = convert_excels_to_db_service(excel_files)
+        
+        if result.get("error", None):
+            return jsonify(result)
+
+        # Send the database file back to the client
+        return send_file(result["db_path"], as_attachment=True, mimetype="application/x-sqlite3")
 
     @app.route("/api/health", methods=["GET"])
     def health():

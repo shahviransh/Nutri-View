@@ -23,7 +23,8 @@ from concurrent.futures import ThreadPoolExecutor
 import pyogrio
 from osgeo import ogr, osr, gdal
 from zipfile import ZipFile, ZIP_DEFLATED
-from werkzeug.utils import safe_join
+from werkzeug.utils import safe_join, secure_filename
+
 import re
 import numexpr as ne
 
@@ -2101,3 +2102,42 @@ def export_map_service(image, form_data):
         return {"file_path": zip_path}
     except Exception as e:
         return {"error": str(e)}
+
+def convert_excels_to_db_service(excel_files):
+    """
+    Convert multiple Excel files into a single SQLite database.
+    Each sheet in each Excel file is treated as a table.
+    """
+    try:
+        # Create a SQLite database
+        db_filename = "combined_database.db3"
+        db_path = os.path.join(Config.TEMPDIR, db_filename)
+        conn = sqlite3.connect(db_path)
+
+        for excel_file in excel_files:
+            # Secure the filename and save it temporarily
+            filename = secure_filename(excel_file.filename)
+            temp_excel_path = os.path.join(Config.TEMPDIR, filename)
+            excel_file.save(temp_excel_path)
+
+            # Read the Excel file and convert each sheet to a table
+            excel_data = pd.ExcelFile(temp_excel_path)
+            for sheet_name in excel_data.sheet_names:
+                # Read the sheet starting from the 3rd row (header row)
+                df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
+                df.columns = [col.replace(" ", "_") for col in df.columns]
+                table_name = f"{os.path.splitext(filename)[0]}_{sheet_name}"
+                df.to_sql(table_name, conn, if_exists="replace", index=False)
+
+            # Clean up the temporary Excel file
+            if os.path.exists(temp_excel_path):
+                os.remove(temp_excel_path)
+
+        conn.close()
+        return {"db_path": db_path}
+
+    except Exception as e:
+        # Clean up in case of an error
+        if os.path.exists(temp_excel_path):
+            os.remove(temp_excel_path)
+        raise e
