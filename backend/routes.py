@@ -312,31 +312,33 @@ def register_routes(app, cache):
     
     """    
     Testing with curl:
-    curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx"  http://127.0.0.1:5000/api/convert_excels_to_db
+    curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx" -F 'mapping={
+        "db1.db3": {
+            "file1.xlsx": ["Sheet1", "Sheet3"]
+        },
+        "db2.db3": {
+            "file2.xlsx": []
+        }
+      }' http://127.0.0.1:5000/api/convert_excels_to_db
     """
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     def convert_excels_to_db():
-        """
-        Convert multiple uploaded Excel files into a single SQLite database.
-        Each sheet in each Excel file is treated as a table.
-        """
         excel_files = request.files.getlist("files")
-        if not excel_files:
-            return jsonify({"error": "No files uploaded"})
-        
-        # Check if the files are Excel files
-        for file in excel_files:
-            if not file.filename.endswith((".xlsx", ".xls")):
-                return jsonify({"error": "Only Excel files are allowed"})
-        
-        # Call the service to convert the Excel files to a database
-        result = convert_excels_to_db_service(excel_files)
-        
-        if result.get("error", None):
-            return jsonify(result)
+        mapping_json = request.form.get("mapping")
 
-        # Send the database file back to the client
-        return send_file(result["db_path"], as_attachment=True, mimetype="application/x-sqlite3")
+        if not excel_files or not mapping_json:
+            return jsonify({"error": "Files and mapping data required"})
+
+        try:
+            mapping = json.loads(mapping_json)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Invalid JSON in mapping"})
+
+        # Call the updated service
+        result = convert_excels_to_db_service(excel_files, mapping)
+
+        # Return all created database paths
+        return jsonify({"databases": result})
 
     @app.route("/api/health", methods=["GET"])
     def health():

@@ -2103,41 +2103,60 @@ def export_map_service(image, form_data):
     except Exception as e:
         return {"error": str(e)}
 
-def convert_excels_to_db_service(excel_files):
+def convert_excels_to_db_service(excel_files, mapping):
     """
-    Convert multiple Excel files into a single SQLite database.
-    Each sheet in each Excel file is treated as a table.
+    Convert Excel files into multiple SQLite databases as per user-defined mapping.
     """
+    saved_files = {}
+    results = {}
+
     try:
-        # Create a SQLite database
-        db_filename = "combined_database.db3"
-        db_path = os.path.join(Config.TEMPDIR, db_filename)
-        conn = sqlite3.connect(db_path)
+        # Save all uploaded Excel files temporarily
+        for file in excel_files:
+            filename = secure_filename(file.filename)
+            path = os.path.join(Config.TEMPDIR, filename)
+            file.save(path)
+            saved_files[filename] = path
 
-        for excel_file in excel_files:
-            # Secure the filename and save it temporarily
-            filename = secure_filename(excel_file.filename)
-            temp_excel_path = os.path.join(Config.TEMPDIR, filename)
-            excel_file.save(temp_excel_path)
+        # Process mapping
+        for db_name, file_sheet_map in mapping.items():
+            db_path = os.path.join(Config.TEMPDIR, secure_filename(db_name))
+            conn = sqlite3.connect(db_path)
 
-            # Read the Excel file and convert each sheet to a table
-            excel_data = pd.ExcelFile(temp_excel_path)
-            for sheet_name in excel_data.sheet_names:
-                # Read the sheet starting from the 3rd row (header row)
-                df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
-                df.columns = [col.replace(" ", "_") for col in df.columns]
-                table_name = f"{os.path.splitext(filename)[0]}_{sheet_name}"
-                df.to_sql(table_name, conn, if_exists="replace", index=False)
+            for excel_filename, sheet_list in file_sheet_map.items():
+                if excel_filename not in saved_files:
+                    continue  # skip missing files
 
-            # Clean up the temporary Excel file
-            if os.path.exists(temp_excel_path):
-                os.remove(temp_excel_path)
+                excel_path = saved_files[excel_filename]
+                excel_data = pd.ExcelFile(excel_path)
 
-        conn.close()
-        return {"db_path": db_path}
+                # Determine sheets to use
+                target_sheets = (
+                    sheet_list if sheet_list else excel_data.sheet_names
+                )
+
+                for sheet_name in target_sheets:
+                    if sheet_name not in excel_data.sheet_names:
+                        continue  # skip missing sheets
+
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
+                    df.columns = [col.replace(" ", "_") for col in df.columns]
+                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}"
+                    df.to_sql(table_name, conn, if_exists="replace", index=False)
+
+            conn.close()
+            results[db_name] = db_path
+
+        # Clean up temp Excel files
+        for path in saved_files.values():
+            if os.path.exists(path):
+                os.remove(path)
+
+        return results
 
     except Exception as e:
-        # Clean up in case of an error
-        if os.path.exists(temp_excel_path):
-            os.remove(temp_excel_path)
-        raise e
+        # Clean up temp files in case of error
+        for path in saved_files.values():
+            if os.path.exists(path):
+                os.remove(path)
+        return {"error": str(e)}
