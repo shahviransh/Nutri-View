@@ -2106,9 +2106,12 @@ def export_map_service(image, form_data):
 def convert_excels_to_db_service(excel_files, mapping):
     """
     Convert Excel files into multiple SQLite databases as per user-defined mapping.
+    Each database gets its explicitly listed sheets. 
+    If a file appears in multiple DBs, later DBs get the remaining sheets.
     """
     saved_files = {}
     results = {}
+    used_sheets = {}
 
     try:
         # Save all uploaded Excel files temporarily
@@ -2118,31 +2121,41 @@ def convert_excels_to_db_service(excel_files, mapping):
             file.save(path)
             saved_files[filename] = path
 
-        # Process mapping
-        for db_name, file_sheet_map in mapping.items():
+        # Initialize used_sheets for each file
+        for filename in saved_files:
+            used_sheets[filename] = set()
+
+        # Process databases in order
+        for db_name in mapping:
             db_path = os.path.join(Config.TEMPDIR, secure_filename(db_name))
             conn = sqlite3.connect(db_path)
 
+            file_sheet_map = mapping[db_name]
+
             for excel_filename, sheet_list in file_sheet_map.items():
                 if excel_filename not in saved_files:
-                    continue  # skip missing files
+                    continue  # Skip missing files
 
                 excel_path = saved_files[excel_filename]
                 excel_data = pd.ExcelFile(excel_path)
+                all_sheets = set(excel_data.sheet_names)
 
-                # Determine sheets to use
-                target_sheets = (
-                    sheet_list if sheet_list else excel_data.sheet_names
-                )
+                if sheet_list:  # explicitly listed sheets
+                    target_sheets = set(sheet_list)
+                else:  # get all sheets not already used
+                    target_sheets = all_sheets - used_sheets[excel_filename]
 
                 for sheet_name in target_sheets:
                     if sheet_name not in excel_data.sheet_names:
-                        continue  # skip missing sheets
+                        continue  # skip missing sheet
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
                     df.columns = [col.replace(" ", "_") for col in df.columns]
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}"
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
+
+                    # Track that this sheet is now used
+                    used_sheets[excel_filename].add(sheet_name)
 
             conn.close()
             results[db_name] = db_path
@@ -2155,7 +2168,6 @@ def convert_excels_to_db_service(excel_files, mapping):
         return results
 
     except Exception as e:
-        # Clean up temp files in case of error
         for path in saved_files.values():
             if os.path.exists(path):
                 os.remove(path)

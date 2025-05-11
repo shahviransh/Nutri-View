@@ -317,7 +317,8 @@ def register_routes(app, cache):
             "file1.xlsx": ["Sheet1", "Sheet3"]
         },
         "db2.db3": {
-            "file2.xlsx": []
+            "file2.xlsx": [],
+            "file1.xlsx": []
         }
       }' http://127.0.0.1:5000/api/convert_excels_to_db
     """
