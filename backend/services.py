@@ -2102,6 +2102,15 @@ def export_map_service(image, form_data):
         return {"file_path": zip_path}
     except Exception as e:
         return {"error": str(e)}
+    
+def get_db_directory(db_name):
+    name = db_name.lower()
+    if name == "PMs.db3":
+        return os.path.join(Config.BASE_DIR, "PMs_Database")
+    elif name == "BMPs.db3":
+        return os.path.join(Config.BASE_DIR, "BMP_Database")
+    else:
+        return Config.BASE_DIR
 
 def convert_excels_to_db_service(excel_files, mapping):
     """
@@ -2127,7 +2136,11 @@ def convert_excels_to_db_service(excel_files, mapping):
 
         # Process databases in order
         for db_name in mapping:
-            db_path = os.path.join(Config.TEMPDIR, secure_filename(db_name))
+            # Create a new SQLite database for each mapping or use existing one
+            db_dir = get_db_directory(db_name)
+            os.makedirs(db_dir, exist_ok=True)
+            db_path = os.path.join(db_dir, secure_filename(db_name))
+
             conn = sqlite3.connect(db_path)
 
             file_sheet_map = mapping[db_name]
@@ -2151,8 +2164,9 @@ def convert_excels_to_db_service(excel_files, mapping):
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
                     df.columns = [col.replace(" ", "_") for col in df.columns]
-                    # Fill down blank values in the entire DataFrame
-                    df = df.fillna(method='ffill')
+                    non_numeric_columns = df.select_dtypes(exclude=['number']).columns
+                    # Fill down blank values in non-numeric columns only
+                    df[non_numeric_columns] = df[non_numeric_columns].fillna(method='ffill')
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}"
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
@@ -2162,15 +2176,12 @@ def convert_excels_to_db_service(excel_files, mapping):
             conn.close()
             results[db_name] = db_path
 
+        return results
+
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
         # Clean up temp Excel files
         for path in saved_files.values():
             if os.path.exists(path):
                 os.remove(path)
-
-        return results
-
-    except Exception as e:
-        for path in saved_files.values():
-            if os.path.exists(path):
-                os.remove(path)
-        return {"error": str(e)}

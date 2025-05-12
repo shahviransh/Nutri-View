@@ -314,7 +314,7 @@ def register_routes(app, cache):
     """    
     Testing with curl:
     curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx" -F 'mapping={
-        "PerformanceMeasures.db3": {
+        "PMs.db3": {
             "file1.xlsx": ["Sheet1", "Sheet3"]
         },
         "BMP.db3": {

@@ -22,3 +22,4 @@ class Config:
     )
     LOOKUP = "Jenette_Creek_Watershed/Database/lookup.db3"
     TEMPDIR = os.path.join(user_data_dir("IMWEBs-Viewer", False), "TempFiles")
+    BASE_DIR = "//int.ec.gc.ca/shares/M/MSC&ONT/Strategic Integration Office/GLHP/Nutrients/FEI_LakeErie_Streams/FEI_Databases"
