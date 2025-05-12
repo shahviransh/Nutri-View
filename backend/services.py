@@ -2151,6 +2151,8 @@ def convert_excels_to_db_service(excel_files, mapping):
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
                     df.columns = [col.replace(" ", "_") for col in df.columns]
+                    # Fill down blank values in the entire DataFrame
+                    df = df.fillna(method='ffill')
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}"
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 

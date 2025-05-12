@@ -36,6 +36,7 @@ from validate import (
     validate_export_map_args,
     validate_serve_tif_args,
 )
+import json
 
 # Load environment variables
 load_dotenv()
@@ -313,10 +314,10 @@ def register_routes(app, cache):
     """    
     Testing with curl:
     curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx" -F 'mapping={
-        "db1.db3": {
+        "PerformanceMeasures.db3": {
             "file1.xlsx": ["Sheet1", "Sheet3"]
         },
-        "db2.db3": {
+        "BMP.db3": {
             "file2.xlsx": [],
             "file1.xlsx": []
         }
