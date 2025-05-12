@@ -313,15 +313,10 @@ def register_routes(app, cache):
     
     """    
     Testing with curl:
-    curl.exe -X POST -F "files=@file1.xlsx" -F "files=@file2.xlsx" -F 'mapping={
-        "PMs.db3": {
-            "file1.xlsx": ["Sheet1", "Sheet3"]
-        },
-        "BMP.db3": {
-            "file2.xlsx": [],
-            "file1.xlsx": []
-        }
-      }' http://127.0.0.1:5000/api/convert_excels_to_db
+    curl.exe -X POST `
+    -F "files=@`"Z:\BMP_Database\GCXE25A053_FEI Performance Measures 2024-25_GRCA.xlsx`"" `
+    -F "mapping={`"PMs.db3`": {`"GCXE25A053_FEI Performance Measures 2024-25_GRCA.xlsx`": [`"1. EOF P Reductions`", `"2. Performance Measures`"]}}" `
+    http://127.0.0.1:5000/api/convert_excels_to_db
     """
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     def convert_excels_to_db():

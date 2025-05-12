@@ -2104,10 +2104,9 @@ def export_map_service(image, form_data):
         return {"error": str(e)}
     
 def get_db_directory(db_name):
-    name = db_name.lower()
-    if name == "PMs.db3":
+    if db_name == "PMs.db3":
         return os.path.join(Config.BASE_DIR, "PMs_Database")
-    elif name == "BMPs.db3":
+    elif db_name == "BMPs.db3":
         return os.path.join(Config.BASE_DIR, "BMP_Database")
     else:
         return Config.BASE_DIR
