@@ -2102,14 +2102,6 @@ def export_map_service(image, form_data):
         return {"file_path": zip_path}
     except Exception as e:
         return {"error": str(e)}
-    
-def get_db_directory(db_name):
-    if db_name == "PMs.db3":
-        return os.path.join(Config.BASE_DIR, "PMs_Database")
-    elif db_name == "BMPs.db3":
-        return os.path.join(Config.BASE_DIR, "BMP_Database")
-    else:
-        return Config.BASE_DIR
 
 def convert_excels_to_db_service(excel_files, mapping):
     """
@@ -2136,9 +2128,8 @@ def convert_excels_to_db_service(excel_files, mapping):
         # Process databases in order
         for db_name in mapping:
             # Create a new SQLite database for each mapping or use existing one
-            db_dir = get_db_directory(db_name)
-            os.makedirs(db_dir, exist_ok=True)
-            db_path = os.path.join(db_dir, secure_filename(db_name))
+            os.makedirs(Config.BASE_DIR, exist_ok=True)
+            db_path = os.path.join(Config.BASE_DIR, secure_filename(db_name))
 
             conn = sqlite3.connect(db_path)
 
