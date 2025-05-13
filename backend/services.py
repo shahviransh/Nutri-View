@@ -2157,11 +2157,9 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping):
                     # Determine correct header row
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 2))
 
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row)
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row, keep_default_na=False, na_values=[""])
                     df.columns = [col.replace(" ", "_") for col in df.columns]
-                    non_numeric_columns = df.select_dtypes(exclude=['number']).columns
-                    # Fill down blank values in non-numeric columns only
-                    df[non_numeric_columns] = df[non_numeric_columns].fillna(method='ffill')
+                    df = df.ffill()
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".replace(" ", "_")
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 

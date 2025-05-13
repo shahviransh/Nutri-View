@@ -27,6 +27,7 @@ DateTime
 debugpy
 decorator
 defusedxml
+et_xmlfile
 executing
 Flask
 Flask-Caching
@@ -37,6 +38,7 @@ folium
 fonttools 
 GDAL 
 geopandas 
+git-filter-repo
 h11
 h2 
 hpack 
@@ -55,6 +57,7 @@ munkres
 networkx 
 numexpr 
 numpy 
+openpyxl
 packaging 
 pandas 
 pbr
