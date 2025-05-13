@@ -2103,7 +2103,7 @@ def export_map_service(image, form_data):
     except Exception as e:
         return {"error": str(e)}
 
-def convert_excels_to_db_service(excel_files, mapping):
+def convert_excels_to_db_service(excel_files, mapping, header_mapping):
     """
     Convert Excel files into multiple SQLite databases as per user-defined mapping.
     Each database gets its explicitly listed sheets. 
@@ -2113,6 +2113,10 @@ def convert_excels_to_db_service(excel_files, mapping):
     results = {}
     used_sheets = {}
 
+    # Fallback to default if header_mapping is not provided
+    if not header_mapping:
+        header_mapping = {"default": 2}
+
     try:
         # Save all uploaded Excel files temporarily
         for file in excel_files:
@@ -2121,7 +2125,7 @@ def convert_excels_to_db_service(excel_files, mapping):
             file.save(path)
             saved_files[filename] = path
 
-        # Initialize used_sheets for each file
+        # Track used sheets per file
         for filename in saved_files:
             used_sheets[filename] = set()
 
@@ -2137,30 +2141,31 @@ def convert_excels_to_db_service(excel_files, mapping):
 
             for excel_filename, sheet_list in file_sheet_map.items():
                 if excel_filename not in saved_files:
-                    continue  # Skip missing files
+                    continue
 
                 excel_path = saved_files[excel_filename]
                 excel_data = pd.ExcelFile(excel_path)
                 all_sheets = set(excel_data.sheet_names)
 
-                if sheet_list:  # explicitly listed sheets
-                    target_sheets = set(sheet_list)
-                else:  # get all sheets not already used
-                    target_sheets = all_sheets - used_sheets[excel_filename]
+                # Decide which sheets to include
+                target_sheets = set(sheet_list) if sheet_list else all_sheets - used_sheets[excel_filename]
 
                 for sheet_name in target_sheets:
                     if sheet_name not in excel_data.sheet_names:
-                        continue  # skip missing sheet
+                        continue
 
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=2)
+                    # Determine correct header row
+                    header_row = header_mapping.get(sheet_name, header_mapping.get("default", 2))
+
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row)
                     df.columns = [col.replace(" ", "_") for col in df.columns]
                     non_numeric_columns = df.select_dtypes(exclude=['number']).columns
                     # Fill down blank values in non-numeric columns only
                     df[non_numeric_columns] = df[non_numeric_columns].fillna(method='ffill')
-                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}"
+                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".replace(" ", "_")
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
-                    # Track that this sheet is now used
+                    # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
 
             conn.close()

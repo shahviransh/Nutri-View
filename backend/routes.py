@@ -315,17 +315,19 @@ def register_routes(app, cache):
     def convert_excels_to_db():
         excel_files = request.files.getlist("files")
         mapping_json = request.form.get("mapping")
+        header_mapping = request.form.get("header_mapping")
 
         if not excel_files or not mapping_json:
             return jsonify({"error": "Files and mapping data required"})
 
         try:
             mapping = json.loads(mapping_json)
+            header_mapping = json.loads(header_mapping) if header_mapping else {}
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid JSON in mapping"})
 
         # Call the updated service
-        result = convert_excels_to_db_service(excel_files, mapping)
+        result = convert_excels_to_db_service(excel_files, mapping, header_mapping)
 
         # Return all created database paths
         return jsonify({"databases": result})
