@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pyogrio
 from osgeo import ogr, osr, gdal
 from zipfile import ZipFile, ZIP_DEFLATED
-from werkzeug.utils import safe_join, secure_filename
+from werkzeug.utils import safe_join
 
 import re
 import numexpr as ne
@@ -2116,7 +2116,7 @@ def convert_excels_to_db_service(excel_files, mapping):
     try:
         # Save all uploaded Excel files temporarily
         for file in excel_files:
-            filename = secure_filename(file.filename)
+            filename = file.filename
             path = os.path.join(Config.TEMPDIR, filename)
             file.save(path)
             saved_files[filename] = path
@@ -2129,7 +2129,7 @@ def convert_excels_to_db_service(excel_files, mapping):
         for db_name in mapping:
             # Create a new SQLite database for each mapping or use existing one
             os.makedirs(Config.BASE_DIR, exist_ok=True)
-            db_path = os.path.join(Config.BASE_DIR, secure_filename(db_name))
+            db_path = os.path.join(Config.BASE_DIR, db_name)
 
             conn = sqlite3.connect(db_path)
 
