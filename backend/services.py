@@ -2113,10 +2113,6 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping):
     results = {}
     used_sheets = {}
 
-    # Fallback to default if header_mapping is not provided
-    if not header_mapping:
-        header_mapping = {"default": 2}
-
     try:
         # Save all uploaded Excel files temporarily
         for file in excel_files:

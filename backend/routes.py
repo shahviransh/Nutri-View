@@ -322,7 +322,7 @@ def register_routes(app, cache):
 
         try:
             mapping = json.loads(mapping_json)
-            header_mapping = json.loads(header_mapping) if header_mapping else {}
+            header_mapping = json.loads(header_mapping)
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid JSON in mapping"})
 
