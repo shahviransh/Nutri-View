@@ -314,20 +314,22 @@ def register_routes(app, cache):
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     def convert_excels_to_db():
         excel_files = request.files.getlist("files")
-        mapping_json = request.form.get("mapping")
+        mapping = request.form.get("mapping")
         header_mapping = request.form.get("header_mapping")
+        merged_mapping = request.form.get("merged_mapping")
 
-        if not excel_files or not mapping_json:
+        if not excel_files or not mapping:
             return jsonify({"error": "Files and mapping data required"})
 
         try:
-            mapping = json.loads(mapping_json)
+            mapping = json.loads(mapping)
             header_mapping = json.loads(header_mapping)
+            merged_mapping = json.loads(merged_mapping)
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid JSON in mapping"})
 
         # Call the updated service
-        result = convert_excels_to_db_service(excel_files, mapping, header_mapping)
+        result = convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_mapping)
 
         # Return all created database paths
         return jsonify({"databases": result})

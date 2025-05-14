@@ -2103,7 +2103,7 @@ def export_map_service(image, form_data):
     except Exception as e:
         return {"error": str(e)}
 
-def convert_excels_to_db_service(excel_files, mapping, header_mapping):
+def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_mapping):
     """
     Convert Excel files into multiple SQLite databases as per user-defined mapping.
     Each database gets its explicitly listed sheets. 
@@ -2154,8 +2154,21 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping):
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 2))
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row, keep_default_na=False, na_values=[""])
-                    df.columns = [col.replace(" ", "_") for col in df.columns]
-                    df = df.ffill()
+                    df.columns = [col.replace(" ", "_").strip() for col in df.columns]
+
+                    config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
+                    merged_cols = config.get("merged_columns", 0)
+                    columns_to_ffill = config.get("columns", [])
+
+                    # Forward-fill first N columns
+                    if merged_cols > 0:
+                        df.iloc[:, :merged_cols] = df.iloc[:, :merged_cols].ffill()
+
+                    # Forward-fill specific columns by name
+                    for col in columns_to_ffill:
+                        if col in df.columns:
+                            df[col] = df[col].ffill()
+                            
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".replace(" ", "_")
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
