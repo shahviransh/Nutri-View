@@ -2169,8 +2169,3 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping):
 
     except Exception as e:
         return {"error": str(e)}
-    finally:
-        # Clean up temp Excel files
-        for path in saved_files.values():
-            if os.path.exists(path):
-                os.remove(path)
