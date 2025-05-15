@@ -1,0 +1,241 @@
+<template>
+  <div class="container">
+    <h1>Excel to SQLite Converter</h1>
+
+    <input type="file" multiple @change="handleFileUpload" class="file-input" />
+
+    <div class="section">
+      <label>
+        Database Mapping (visual form):
+        <span class="tooltip">❔
+          <span class="tooltiptext">
+            Define which Excel files and sheets go into which SQLite database.
+    You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not already used in prior databases.
+    Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
+             db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
+          </span>
+        </span>
+      </label>
+      <div v-for="(db, dbIndex) in mappingForm" :key="dbIndex" class="db-box">
+        <input v-model="db.name" placeholder="Database Name" class="text-input" />
+        <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
+          <input v-model="sheetEntry.filename" placeholder="Excel Filename" class="text-input" />
+          <input v-model="sheetEntry.sheets" placeholder="Sheets (comma-separated)" class="text-input ml" />
+        </div>
+        <button @click="addFileEntry(db)" class="add-button">+ Add File Entry</button>
+      </div>
+      <button @click="addDatabaseEntry" class="add-button">+ Add Database</button>
+    </div>
+
+    <div class="section">
+      <label>
+        Header Mapping (JSON):
+        <span class="tooltip">❔
+          <span class="tooltiptext">
+            Specify which row to treat as column headers for each sheet.
+            Use "default" for most sheets, or provide sheet-specific overrides.
+            Example: { "default": 2, "Sheet5": 1 }
+          </span>
+        </span>
+      </label>
+      <textarea v-model="headerMappingRaw" class="textarea"></textarea>
+    </div>
+
+    <div class="section">
+      <label>
+        Merged Mapping (JSON):
+        <span class="tooltip">❔
+          <span class="tooltiptext">
+            Used to fill down merged cells or partially empty columns.
+    Set how many of the left-most columns to auto-forward fill for merged cell correction.
+    You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
+    Example: { "default": { "merged_columns": 1, "columns": ["Country"] } }
+          </span>
+        </span>
+      </label>
+      <textarea v-model="mergedMappingRaw" class="textarea"></textarea>
+    </div>
+
+    <button @click="submitForm" class="submit-button">Submit</button>
+
+    <div v-if="response" class="response">
+      <h2>Response</h2>
+      <pre>{{ response }}</pre>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      files: [],
+      mappingForm: [
+        {
+          name: "db1.db3",
+          files: [{ filename: "file1.xlsx", sheets: "Sheet1,Sheet3" }]
+        }
+      ],
+      headerMappingRaw: '{\n  "default": 2\n}',
+      mergedMappingRaw: '{\n  "default": {\n    "merged_columns": 1,\n    "columns": ["Country"]\n  }\n}',
+      response: null
+    };
+  },
+  methods: {
+    handleFileUpload(event) {
+      this.files = Array.from(event.target.files);
+    },
+    addDatabaseEntry() {
+      this.mappingForm.push({ name: "", files: [] });
+    },
+    addFileEntry(db) {
+      db.files.push({ filename: "", sheets: "" });
+    },
+    buildMapping() {
+      const mapping = {};
+      for (const db of this.mappingForm) {
+        mapping[db.name] = {};
+        for (const file of db.files) {
+          mapping[db.name][file.filename] = file.sheets
+            ? file.sheets.split(",").map(s => s.trim())
+            : [];
+        }
+      }
+      return mapping;
+    },
+    async submitForm() {
+      const formData = new FormData();
+      this.files.forEach(file => formData.append("files", file));
+      formData.append("mapping", JSON.stringify(this.buildMapping()));
+      formData.append("header_mapping", this.headerMappingRaw);
+      formData.append("merged_mapping", this.mergedMappingRaw);
+
+      try {
+        const res = await axios.post("http://127.0.0.1:5000/api/convert_excels_to_db", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+        this.response = res.data;
+      } catch (error) {
+        this.response = error.response?.data || error.message;
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.text-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: calc(50% - 10px);
+  margin-bottom: 5px;
+}
+
+.ml {
+  margin-left: 10px;
+}
+
+.textarea {
+  width: 100%;
+  height: 100px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.file-input {
+  margin-bottom: 20px;
+}
+
+.db-box {
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.sheet-box {
+  display: flex;
+  margin-top: 5px;
+}
+
+.add-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.submit-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.response {
+  margin-top: 20px;
+  background: #e9ecef;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.tooltip {
+  margin-left: 6px;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 280px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -140px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
