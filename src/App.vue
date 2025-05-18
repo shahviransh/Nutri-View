@@ -6,20 +6,27 @@
 
     <div class="section">
       <label>
-        Database Mapping (visual form):
+        Database Mapping:
         <span class="tooltip">❔
           <span class="tooltiptext">
             Define which Excel files and sheets go into which SQLite database.
-    You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not already used in prior databases.
-    Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
-             db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
+            You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not
+            already used in prior databases.
+            Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
+            db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
           </span>
         </span>
       </label>
       <div v-for="(db, dbIndex) in mappingForm" :key="dbIndex" class="db-box">
         <input v-model="db.name" placeholder="Database Name" class="text-input" />
         <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
-          <input v-model="sheetEntry.filename" placeholder="Excel Filename" class="text-input" />
+          <select v-model="sheetEntry.filename" class="text-input">
+            <option disabled value="">Select File</option>
+            <option v-for="file in files" :key="file.name" :value="file.name">
+              {{ file.name }}
+            </option>
+          </select>
+
           <input v-model="sheetEntry.sheets" placeholder="Sheets (comma-separated)" class="text-input ml" />
         </div>
         <button @click="addFileEntry(db)" class="add-button">+ Add File Entry</button>
@@ -29,31 +36,44 @@
 
     <div class="section">
       <label>
-        Header Mapping (JSON):
+        Header Mapping:
         <span class="tooltip">❔
           <span class="tooltiptext">
             Specify which row to treat as column headers for each sheet.
             Use "default" for most sheets, or provide sheet-specific overrides.
-            Example: { "default": 2, "Sheet5": 1 }
+            Example: default = 2, Sheet5 = 1
+            This will use row 2 for most sheets, but row 1 for Sheet5.
           </span>
         </span>
       </label>
-      <textarea v-model="headerMappingRaw" class="textarea"></textarea>
+      <div v-for="(entry, index) in headerMapping" :key="index" class="sheet-box">
+        <input v-model="entry.sheet" placeholder="Sheet Name (or 'default')" class="text-input" />
+        <input v-model.number="entry.row" placeholder="Header Row (1-based)" type="number" class="text-input ml" />
+      </div>
+      <button @click="addHeaderMappingEntry" class="add-button">+ Add Header Rule</button>
     </div>
+
 
     <div class="section">
       <label>
-        Merged Mapping (JSON):
+        Merged Mapping:
         <span class="tooltip">❔
           <span class="tooltiptext">
             Used to fill down merged cells or partially empty columns.
-    Set how many of the left-most columns to auto-forward fill for merged cell correction.
-    You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
-    Example: { "default": { "merged_columns": 1, "columns": ["Country"] } }
+            Set how many of the left-most columns to auto-forward fill for merged cell correction.
+            You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
+            Example: merged_columns = 1, columns = ["Country"]
+            This will forward-fill the first column from the left and also fill the "Country" column.
           </span>
         </span>
       </label>
-      <textarea v-model="mergedMappingRaw" class="textarea"></textarea>
+      <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
+        <input v-model="entry.sheet" placeholder="Sheet Names" class="text-input" />
+        <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
+          class="text-input" />
+        <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
+      </div>
+      <button @click="addMergedMappingEntry" class="add-button">+ Add Merged Rule</button>
     </div>
 
     <button @click="submitForm" class="submit-button">Submit</button>
@@ -78,8 +98,11 @@ export default {
           files: [{ filename: "file1.xlsx", sheets: "Sheet1,Sheet3" }]
         }
       ],
-      headerMappingRaw: '{\n  "default": 2\n}',
-      mergedMappingRaw: '{\n  "default": {\n    "merged_columns": 1,\n    "columns": ["Country"]\n  }\n}',
+      headerMapping: [{ sheet: "default", row: 3 }],
+      mergedMapping: [{
+        sheet: "default",
+        merged_columns: 1
+      }],
       response: null
     };
   },
@@ -108,15 +131,29 @@ export default {
     async submitForm() {
       const formData = new FormData();
       this.files.forEach(file => formData.append("files", file));
-      formData.append("mapping", JSON.stringify(this.buildMapping()));
-      formData.append("header_mapping", this.headerMappingRaw);
-      formData.append("merged_mapping", this.mergedMappingRaw);
+      const headerMappingJson = {};
+      this.headerMapping.forEach(e => {
+        if (e.sheet) headerMappingJson[e.sheet] = Number(e.row);
+      });
 
+      const mergedMappingJson = {};
+      this.mergedMapping.forEach(e => {
+        if (e.sheet) {
+          mergedMappingJson[e.sheet] = {
+            merged_columns: Number(e.merged_columns),
+            columns: e.columns.split(",").map(c => c.trim())
+          };
+        }
+      });
+
+      formData.append("mapping", JSON.stringify(this.buildMapping()));
+      formData.append("header_mapping", JSON.stringify(headerMappingJson));
+      formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
       try {
-        const res = await axios.post("http://127.0.0.1:5000/api/convert_excels_to_db", formData, {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
           headers: { "Content-Type": "multipart/form-data" }
         });
-        this.response = res.data;
+        this.response = response.data;
       } catch (error) {
         this.response = error.response?.data || error.message;
       }
