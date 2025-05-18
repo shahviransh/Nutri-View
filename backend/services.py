@@ -2151,9 +2151,9 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                         continue
 
                     # Determine correct header row
-                    header_row = header_mapping.get(sheet_name, header_mapping.get("default", 2))
+                    header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
 
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row, keep_default_na=False, na_values=[""])
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1, keep_default_na=False, na_values=[""])
                     df.columns = [col.replace(" ", "_").strip() for col in df.columns]
 
                     config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
