@@ -72,6 +72,7 @@
       </label>
       <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
         <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
+        <span>:</span>
         <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
           class="text-input ml" />
         <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
