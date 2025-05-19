@@ -61,19 +61,19 @@
         Merged Mapping:
         <span class="tooltip">❓
           <span class="tooltiptext">
-            Used to fill down merged cells or partially empty columns.
+            Used to fill down merged cells or partially empty columns in specific sheets.
             Set how many of the left-most columns to auto-forward fill for merged cell correction.
             You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
             <br/><br/>
-            Example: merged_columns = 2, columns = ["Country"]<br/>
-            This will forward-fill the first two columns from the left and also fill the "Country" column.
+            Example: sheet_name = "Sheet1" merged_columns = 2, columns = ["Country"]<br/>
+            This will forward-fill the first two columns from the left and also fill the "Country" column only in Sheet1.
           </span>
         </span>
       </label>
       <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
         <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
         <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
-          class="text-input" />
+          class="text-input ml" />
         <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
       </div>
       <button @click="addMergedMappingEntry" class="add-button">+ Add Merged Rule</button>
