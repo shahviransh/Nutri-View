@@ -1,17 +1,18 @@
 <template>
   <div class="container">
-    <h1>Excel to SQLite Converter</h1>
+    <h1>Excel file(s) to Database(s) Converter</h1>
 
     <input type="file" multiple @change="handleFileUpload" class="file-input" />
 
     <div class="section">
       <label>
         Database Mapping:
-        <span class="tooltip">❔
+        <span class="tooltip">❓
           <span class="tooltiptext">
-            Define which Excel files and sheets go into which SQLite database.
+            Define which Excel files and sheets go into which SQLite database (.db3).
             You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not
             already used in prior databases.
+            <br/><br/>
             Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
             db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
           </span>
@@ -26,7 +27,7 @@
               {{ file.name }}
             </option>
           </select>
-
+          <span>:</span>
           <input v-model="sheetEntry.sheets" placeholder="Sheets (comma-separated)" class="text-input ml" />
         </div>
         <button @click="addFileEntry(db)" class="add-button">+ Add File Entry</button>
@@ -37,38 +38,40 @@
     <div class="section">
       <label>
         Header Mapping:
-        <span class="tooltip">❔
+        <span class="tooltip">❓
           <span class="tooltiptext">
             Specify which row to treat as column headers for each sheet.
             Use "default" for most sheets, or provide sheet-specific overrides.
-            Example: default = 2, Sheet5 = 1
+            <br/><br/>
+            Example: default = 2, Sheet5 = 1<br/>
             This will use row 2 for most sheets, but row 1 for Sheet5.
           </span>
         </span>
       </label>
       <div v-for="(entry, index) in headerMapping" :key="index" class="sheet-box">
-        <input v-model="entry.sheet" placeholder="Sheet Name (or 'default')" class="text-input" />
+        <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
+        <span>:</span>
         <input v-model.number="entry.row" placeholder="Header Row (1-based)" type="number" class="text-input ml" />
       </div>
       <button @click="addHeaderMappingEntry" class="add-button">+ Add Header Rule</button>
     </div>
 
-
     <div class="section">
       <label>
         Merged Mapping:
-        <span class="tooltip">❔
+        <span class="tooltip">❓
           <span class="tooltiptext">
             Used to fill down merged cells or partially empty columns.
             Set how many of the left-most columns to auto-forward fill for merged cell correction.
             You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
-            Example: merged_columns = 1, columns = ["Country"]
-            This will forward-fill the first column from the left and also fill the "Country" column.
+            <br/><br/>
+            Example: merged_columns = 2, columns = ["Country"]<br/>
+            This will forward-fill the first two columns from the left and also fill the "Country" column.
           </span>
         </span>
       </label>
       <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
-        <input v-model="entry.sheet" placeholder="Sheet Names" class="text-input" />
+        <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
         <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
           class="text-input" />
         <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
@@ -94,14 +97,14 @@ export default {
       files: [],
       mappingForm: [
         {
-          name: "db1.db3",
-          files: [{ filename: "file1.xlsx", sheets: "Sheet1,Sheet3" }]
+          name: "PMs.db3",
+          files: [{ filename: "", sheets: "Sheet1,Sheet3" }]
         }
       ],
       headerMapping: [{ sheet: "default", row: 3 }],
       mergedMapping: [{
         sheet: "default",
-        merged_columns: 1
+        merged_columns: 0
       }],
       response: null
     };
@@ -115,6 +118,12 @@ export default {
     },
     addFileEntry(db) {
       db.files.push({ filename: "", sheets: "" });
+    },
+    addHeaderMappingEntry() {
+      this.headerMapping.push({ sheet: "", row: 3 });
+    },
+    addMergedMappingEntry() {
+      this.mergedMapping.push({ sheet: "", merged_columns: 0, columns: "" });
     },
     buildMapping() {
       const mapping = {};
@@ -171,6 +180,7 @@ export default {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 8px;
+  color: black;
 }
 
 h1 {
@@ -208,7 +218,7 @@ h1 {
 }
 
 .db-box {
-  background: #fff;
+  background: white;
   padding: 10px;
   border: 1px solid #ccc;
   margin-top: 10px;
@@ -256,7 +266,7 @@ h1 {
   visibility: hidden;
   width: 280px;
   background-color: #333;
-  color: #fff;
+  color: white;
   text-align: left;
   border-radius: 6px;
   padding: 8px;
