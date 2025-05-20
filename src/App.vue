@@ -23,7 +23,7 @@
         <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
           <select v-model="sheetEntry.filename" class="text-input">
             <option disabled value="">Select File</option>
-            <option v-for="file in files" :key="file.name" :value="file.name">
+            <option v-for="file in availableFilesPerDB[dbIndex]" :key="file.name" :value="file.name">
               {{ file.name }}
             </option>
           </select>
@@ -114,6 +114,14 @@ export default {
       }],
       response: null
     };
+  },
+  computed: {
+    availableFilesPerDB() {
+      return this.mappingForm.map(db => {
+        const selectedFilenames = db.files.map(f => f.filename);
+        return this.files.filter(file => !selectedFilenames.includes(file.name));
+      });
+    }
   },
   methods: {
     handleFileUpload(event) {
