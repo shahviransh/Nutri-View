@@ -123,7 +123,7 @@ export default {
       this.mappingForm.push({ name: "", files: [] });
     },
     addFileEntry(db) {
-      if (db === "PMs.db3") {
+      if (db.name === "PMs.db3") {
         db.files.push({ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" });
       } else {
         db.files.push({ filename: "", sheets: "" });
