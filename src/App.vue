@@ -85,7 +85,14 @@
 
     <div v-if="response" class="response">
       <h2>Response</h2>
-      <pre>{{ response }}</pre>
+      <div v-if="response.error" class="error-message">
+        {{ response.error }}
+      </div>
+      <ul v-else>
+        <li v-for="(path, dbname) in response" :key="dbname">
+          <strong>{{ dbname }}</strong>: {{ path }}
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -237,6 +244,12 @@ h1 {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-family: monospace;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .file-input {
