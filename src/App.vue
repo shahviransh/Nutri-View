@@ -23,7 +23,7 @@
         <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
           <select v-model="sheetEntry.filename" class="text-input">
             <option disabled value="">Select File</option>
-            <option v-for="file in availableFilesPerDB[dbIndex]" :key="file.name" :value="file.name">
+            <option v-for="file in availableFilesPerDB[dbIndex][fileIndex]" :key="file.name" :value="file.name">
               {{ file.name }}
             </option>
           </select>
@@ -118,8 +118,16 @@ export default {
   computed: {
     availableFilesPerDB() {
       return this.mappingForm.map(db => {
-        const selectedFilenames = db.files.map(f => f.filename);
-        return this.files.filter(file => !selectedFilenames.includes(file.name));
+        return db.files.map(currentEntry => {
+          const selectedFilenames = db.files
+            .filter(entry => entry !== currentEntry)
+            .map(entry => entry.filename);
+          return this.files.filter(
+            file =>
+              !selectedFilenames.includes(file.name) ||
+              file.name === currentEntry.filename
+          );
+        });
       });
     }
   },
@@ -168,7 +176,7 @@ export default {
         if (e.sheet) {
           mergedMappingJson[e.sheet] = {
             merged_columns: Number(e.merged_columns),
-            columns: e.columns.split(",").map(c => c.trim())
+            columns: e.columns ? e.columns.split(",").map(c => c.trim()) : []
           };
         }
       });
