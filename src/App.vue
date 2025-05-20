@@ -12,7 +12,7 @@
             Define which Excel files and sheets go into which SQLite database (.db3).
             You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not
             already used in prior databases.
-            <br/><br/>
+            <br /><br />
             Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
             db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
           </span>
@@ -42,8 +42,8 @@
           <span class="tooltiptext">
             Specify which row to treat as column headers for each sheet.
             Use "default" for most sheets, or provide sheet-specific overrides.
-            <br/><br/>
-            Example: default = 2, Sheet5 = 1<br/>
+            <br /><br />
+            Example: default = 2, Sheet5 = 1<br />
             This will use row 2 for most sheets, but row 1 for Sheet5.
           </span>
         </span>
@@ -64,9 +64,10 @@
             Used to fill down merged cells or partially empty columns in specific sheets.
             Set how many of the left-most columns to auto-forward fill for merged cell correction.
             You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
-            <br/><br/>
-            Example: sheet_name = "Sheet1" merged_columns = 2, columns = ["Country"]<br/>
-            This will forward-fill the first two columns from the left and also fill the "Country" column only in Sheet1.
+            <br /><br />
+            Example: sheet_name = "Sheet1" merged_columns = 2, columns = ["Country"]<br />
+            This will forward-fill the first two columns from the left and also fill the "Country" column only in
+            Sheet1.
           </span>
         </span>
       </label>
@@ -99,13 +100,17 @@ export default {
       mappingForm: [
         {
           name: "PMs.db3",
-          files: [{ filename: "", sheets: "Sheet1,Sheet3" }]
+          files: [{ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" }]
         }
       ],
-      headerMapping: [{ sheet: "default", row: 3 }],
+      headerMapping: [{ sheet: "default", row: 3 }, { sheet: "2. Performance Measures", row: 4 }],
       mergedMapping: [{
-        sheet: "default",
-        merged_columns: 0
+        sheet: "1. EOF P Reductions",
+        merged_columns: 4
+      },
+      {
+        sheet: "2. Performance Measures",
+        merged_columns: 1,
       }],
       response: null
     };
@@ -118,10 +123,14 @@ export default {
       this.mappingForm.push({ name: "", files: [] });
     },
     addFileEntry(db) {
-      db.files.push({ filename: "", sheets: "" });
+      if (db === "PMs.db3") {
+        db.files.push({ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" });
+      } else {
+        db.files.push({ filename: "", sheets: "" });
+      }
     },
     addHeaderMappingEntry() {
-      this.headerMapping.push({ sheet: "", row: 3 });
+      this.headerMapping.push({ sheet: "", row: 0 });
     },
     addMergedMappingEntry() {
       this.mergedMapping.push({ sheet: "", merged_columns: 0, columns: "" });
