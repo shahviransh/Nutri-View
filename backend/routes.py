@@ -332,7 +332,7 @@ def register_routes(app, cache):
         result = convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_mapping)
 
         # Return all created database paths
-        return jsonify({"databases": result})
+        return jsonify(result)
 
     @app.route("/api/health", methods=["GET"])
     def health():
