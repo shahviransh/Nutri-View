@@ -109,6 +109,10 @@ export default {
         {
           name: "PMs.db3",
           files: [{ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" }]
+        },
+        {
+          name: "BMPs.db3",
+          files: [{ filename: "", sheets: "" }]
         }
       ],
       headerMapping: [{ sheet: "default", row: 3 }, { sheet: "2. Performance Measures", row: 4 }],
@@ -144,24 +148,27 @@ export default {
   methods: {
     handleFileUpload(event) {
       this.files = Array.from(event.target.files);
-
-      // Auto-select uploaded files in PMs.db3
-      const pmsDb = this.mappingForm.find(db => db.name === "PMs.db3");
-      if (pmsDb) {
-        // Update the filenames in existing entries
+      this.autoSelectFiles();
+    },
+    autoSelectFiles() {
+      for (const db of this.mappingForm) {
         for (let i = 0; i < this.files.length; i++) {
           const file = this.files[i];
-          if (pmsDb.files[i]) {
-            pmsDb.files[i].filename = file.name;
+          if (db.files[i]) {
+            db.files[i].filename = file.name;
+            // For PMs.db3 use default sheets, otherwise empty string
+            if (db.name === "PMs.db3" && !db.files[i].sheets) {
+              db.files[i].sheets = "1. EOF P Reductions,2. Performance Measures";
+            }
           } else {
-            // Add new entries if more files are uploaded
-            pmsDb.files.push({
+            db.files.push({
               filename: file.name,
-              sheets: "1. EOF P Reductions,2. Performance Measures"
+              sheets: db.name === "PMs.db3" ? "1. EOF P Reductions,2. Performance Measures" : ""
             });
           }
         }
-        pmsDb.files = pmsDb.files.slice(0, this.files.length);
+        // Trim files array to uploaded files length
+        db.files = db.files.slice(0, this.files.length);
       }
     },
     addDatabaseEntry() {

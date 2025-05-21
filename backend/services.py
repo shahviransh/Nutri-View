@@ -2154,8 +2154,10 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1, keep_default_na=False, na_values=[""])
-                    df.columns = [col.replace(" ", "_").strip() for col in df.columns]
-
+                    df.columns = [
+                        col.replace(" ", "_").strip() if isinstance(col, str) else col
+                        for col in df.columns
+                    ]
                     config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
                     merged_cols = config.get("merged_columns", 0)
                     columns_to_ffill = config.get("columns", [])
@@ -2169,9 +2171,13 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                         if col in df.columns:
                             df[col] = df[col].ffill()
                             
-                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".replace(" ", "_")
+                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
                     # Remove any columns that start with "Unnamed"
-                    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+                    mask = [
+                        not (isinstance(col, str) and col.startswith("Unnamed"))
+                        for col in df.columns
+                    ]
+                    df = df.loc[:, mask]
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
