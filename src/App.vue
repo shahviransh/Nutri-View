@@ -115,7 +115,7 @@ export default {
           files: [{ filename: "", sheets: "" }]
         }
       ],
-      headerMapping: [{ sheet: "default", row: 3 }, { sheet: "2. Performance Measures", row: 4 }],
+      headerMapping: [{ sheet: "default", row: 4 }, { sheet: "1. EOF P Reductions", row: 3 }],
       mergedMapping: [{
         sheet: "1. EOF P Reductions",
         merged_columns: 4
