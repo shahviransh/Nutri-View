@@ -86,7 +86,8 @@
     <div v-if="response" class="response">
       <h2>Response</h2>
       <div v-if="response.error" class="error-message">
-        {{ response.error }}
+        <div><strong>Status:</strong> {{ response.status || "Unknown" }}</div>
+        <div><strong>Message:</strong> {{ response.error }}</div>
       </div>
       <ul v-else>
         <li v-for="(path, dbname) in response" :key="dbname">
@@ -126,6 +127,8 @@ export default {
     availableFilesPerDB() {
       return this.mappingForm.map(db => {
         return db.files.map(currentEntry => {
+          // Filter out files that are already selected in the current database
+          // and also filter out the current entry to avoid duplicates
           const selectedFilenames = db.files
             .filter(entry => entry !== currentEntry)
             .map(entry => entry.filename);
@@ -141,6 +144,25 @@ export default {
   methods: {
     handleFileUpload(event) {
       this.files = Array.from(event.target.files);
+
+      // Auto-select uploaded files in PMs.db3
+      const pmsDb = this.mappingForm.find(db => db.name === "PMs.db3");
+      if (pmsDb) {
+        // Update the filenames in existing entries
+        for (let i = 0; i < this.files.length; i++) {
+          const file = this.files[i];
+          if (pmsDb.files[i]) {
+            pmsDb.files[i].filename = file.name;
+          } else {
+            // Add new entries if more files are uploaded
+            pmsDb.files.push({
+              filename: file.name,
+              sheets: "1. EOF P Reductions,2. Performance Measures"
+            });
+          }
+        }
+        pmsDb.files = pmsDb.files.slice(0, this.files.length);
+      }
     },
     addDatabaseEntry() {
       this.mappingForm.push({ name: "", files: [] });
@@ -197,7 +219,10 @@ export default {
         });
         this.response = response.data;
       } catch (error) {
-        this.response = error.response?.data || error.message;
+        this.response = {
+          error: error.response.data?.error || error.response.statusText || "An error occurred",
+          status: error.response.status
+        };
       }
     }
   }
