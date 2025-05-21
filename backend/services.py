@@ -472,7 +472,7 @@ def fetch_data_from_db(
         columns = ",".join(real_columns)
 
     # Start building the base query using real table name
-    query = f"SELECT {columns if columns != 'All' else '*'} FROM {real_table_name}"
+    query = f"SELECT {columns if columns != 'All' else '*'} FROM '{real_table_name}'"
     params = []
 
     ID = next((col for col in columns_list if "ID" in col), "ID")
@@ -2170,6 +2170,8 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                             df[col] = df[col].ffill()
                             
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".replace(" ", "_")
+                    # Remove any columns that start with "Unnamed"
+                    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
