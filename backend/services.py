@@ -2173,7 +2173,11 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                             
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
                     # Remove any columns that start with "Unnamed"
-                    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+                    mask = [
+                        not (isinstance(col, str) and col.startswith("Unnamed"))
+                        for col in df.columns
+                    ]
+                    df = df.loc[:, mask]
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
