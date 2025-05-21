@@ -113,9 +113,16 @@ export default {
         {
           name: "BMPs.db3",
           files: [{ filename: "", sheets: "" }]
+        },
+        {
+          name: "WQ.db3",
+          files: [{ filename: "", sheets: "" }]
         }
       ],
-      headerMapping: [{ sheet: "default", row: 4 }, { sheet: "1. EOF P Reductions", row: 3 }],
+      headerMapping: [{ sheet: "default", row: 4 },
+      { sheet: "1. EOF P Reductions", row: 3 },
+      { sheet: "Sheet1", row: 3 },
+      ],
       mergedMapping: [{
         sheet: "1. EOF P Reductions",
         merged_columns: 4
@@ -151,25 +158,28 @@ export default {
       this.autoSelectFiles();
     },
     autoSelectFiles() {
-      for (const db of this.mappingForm) {
-        for (let i = 0; i < this.files.length; i++) {
-          const file = this.files[i];
-          if (db.files[i]) {
-            db.files[i].filename = file.name;
-            // For PMs.db3 use default sheets, otherwise empty string
-            if (db.name === "PMs.db3" && !db.files[i].sheets) {
-              db.files[i].sheets = "1. EOF P Reductions,2. Performance Measures";
+      this.mappingForm.forEach(db => (db.files = []));
+
+      this.files.forEach(file => {
+        const name = file.name.toLowerCase();
+        // Check if the file name contains specific keywords to determine the database
+        if (name.includes("performance measures")) {
+          // Assign to PMs.db3 or BMPs.db3
+          this.mappingForm.forEach(db => {
+            if (db.name === "PMs.db3" || db.name === "BMPs.db3") {
+              db.files.push({
+                filename: file.name,
+                sheets: db.name === "PMs.db3" ? "1. EOF P Reductions,2. Performance Measures" : ""
+              });
             }
-          } else {
-            db.files.push({
-              filename: file.name,
-              sheets: db.name === "PMs.db3" ? "1. EOF P Reductions,2. Performance Measures" : ""
-            });
-          }
+          });
         }
-        // Trim files array to uploaded files length
-        db.files = db.files.slice(0, this.files.length);
-      }
+        if (name.includes("water quality")) {
+          // Assign to WQ.db3
+          const wqDb = this.mappingForm.find(db => db.name === "WQ.db3");
+          if (wqDb) wqDb.files.push({ filename: file.name, sheets: "" });
+        }
+      });
     },
     addDatabaseEntry() {
       this.mappingForm.push({ name: "", files: [] });

@@ -2154,10 +2154,20 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
 
                     df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1, keep_default_na=False, na_values=[""])
-                    df.columns = [
-                        col.replace(" ", "_").strip() if isinstance(col, str) else col
-                        for col in df.columns
-                    ]
+                    cols = list(df.columns)
+
+                    # Remove trailing "Unnamed" columns at the end
+                    while cols and isinstance(cols[-1], str) and cols[-1].startswith("Unnamed"):
+                        cols.pop()
+                    df = df.loc[:, cols]
+
+                    # Replace inner "Unnamed" column names by previous column name
+                    for i in range(1, len(cols)):
+                        if isinstance(cols[i], str) and cols[i].startswith("Unnamed"):
+                            cols[i] = f"{cols[i-1]}_{i}"
+
+                    # Reassign the fixed column names back to df
+                    df.columns = [col.replace(" ", "_").strip() if isinstance(col, str) else col for col in cols]
                     config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
                     merged_cols = config.get("merged_columns", 0)
                     columns_to_ffill = config.get("columns", [])
@@ -2172,12 +2182,6 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                             df[col] = df[col].ffill()
                             
                     table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
-                    # Remove any columns that start with "Unnamed"
-                    mask = [
-                        not (isinstance(col, str) and col.startswith("Unnamed"))
-                        for col in df.columns
-                    ]
-                    df = df.loc[:, mask]
                     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
