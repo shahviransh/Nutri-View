@@ -19,8 +19,10 @@
         </span>
       </label>
       <div v-for="(db, dbIndex) in mappingForm" :key="dbIndex" class="db-box">
+        <button @click="removeDatabaseEntry(dbIndex)" class="delete-button">✕</button>
         <input v-model="db.name" placeholder="Database Name" class="text-input" />
         <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
+          <button @click="removeFileEntry(dbIndex, fileIndex)" class="delete-button">✕</button>
           <select v-model="sheetEntry.filename" class="text-input">
             <option disabled value="">Select File</option>
             <option v-for="file in availableFilesPerDB[dbIndex][fileIndex]" :key="file.name" :value="file.name">
@@ -49,6 +51,7 @@
         </span>
       </label>
       <div v-for="(entry, index) in headerMapping" :key="index" class="sheet-box">
+        <button @click="removeHeaderMappingEntry(index)" class="delete-button">✕</button>
         <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
         <span>:</span>
         <input v-model.number="entry.row" placeholder="Header Row (1-based)" type="number" class="text-input ml" />
@@ -72,6 +75,7 @@
         </span>
       </label>
       <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
+        <button @click="removeMergedMappingEntry(index)" class="delete-button">✕</button>
         <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
         <span>:</span>
         <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
@@ -156,6 +160,18 @@ export default {
     handleFileUpload(event) {
       this.files = Array.from(event.target.files);
       this.autoSelectFiles();
+    },
+    removeDatabaseEntry(index) {
+      this.mappingForm.splice(index, 1);
+    },
+    removeFileEntry(dbIndex, fileIndex) {
+      this.mappingForm[dbIndex].files.splice(fileIndex, 1);
+    },
+    removeHeaderMappingEntry(index) {
+      this.headerMapping.splice(index, 1);
+    },
+    removeMergedMappingEntry(index) {
+      this.mergedMapping.splice(index, 1);
     },
     autoSelectFiles() {
       this.mappingForm.forEach(db => (db.files = []));
@@ -292,6 +308,14 @@ h1 {
   color: red;
   font-weight: bold;
   margin-bottom: 10px;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .file-input {
