@@ -36,7 +36,6 @@ from validate import (
     validate_export_map_args,
     validate_serve_tif_args,
 )
-import json
 
 # Load environment variables
 load_dotenv()
@@ -314,22 +313,13 @@ def register_routes(app, cache):
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     def convert_excels_to_db():
         excel_files = request.files.getlist("files")
-        mapping = request.form.get("mapping")
-        header_mapping = request.form.get("header_mapping")
-        merged_mapping = request.form.get("merged_mapping")
+        data = request.form.to_dict()
 
-        if not excel_files or not mapping:
+        if not excel_files:
             return jsonify({"error": "Files and mapping data required"})
 
-        try:
-            mapping = json.loads(mapping)
-            header_mapping = json.loads(header_mapping)
-            merged_mapping = json.loads(merged_mapping)
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON in mapping"})
-
         # Call the updated service
-        result = convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_mapping)
+        result = convert_excels_to_db_service(excel_files, data)
 
         # Return all created database paths
         return jsonify(result)

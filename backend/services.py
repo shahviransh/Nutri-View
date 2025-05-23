@@ -2103,17 +2103,25 @@ def export_map_service(image, form_data):
     except Exception as e:
         return {"error": str(e)}
 
-def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_mapping):
+def convert_excels_to_db_service(excel_files, data):
     """
     Convert Excel files into multiple SQLite databases as per user-defined mapping.
     Each database gets its explicitly listed sheets. 
     If a file appears in multiple DBs, later DBs get the remaining sheets.
     """
+    mapping = data.get("mapping")
+    header_mapping = data.get("header_mapping")
+    merged_mapping = data.get("merged_mapping")
+    conflict_action = data.get("conflict_action", "replace")
     saved_files = {}
     results = {}
     used_sheets = {}
 
     try:
+        mapping = json.loads(mapping)
+        header_mapping = json.loads(header_mapping)
+        merged_mapping = json.loads(merged_mapping)
+        
         # Save all uploaded Excel files temporarily
         for file in excel_files:
             filename = file.filename
@@ -2124,6 +2132,8 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
         # Track used sheets per file
         for filename in saved_files:
             used_sheets[filename] = set()
+            
+        df_final = pd.DataFrame()
 
         # Process databases in order
         for db_name in mapping:
@@ -2181,11 +2191,26 @@ def convert_excels_to_db_service(excel_files, mapping, header_mapping, merged_ma
                         if col in df.columns:
                             df[col] = df[col].ffill()
                             
-                    table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
-                    df.to_sql(table_name, conn, if_exists="replace", index=False)
+                    if "BMP" in db_name:
+                        # Merge with the final DataFrame on BMP_ID and Organization
+                        df_final = pd.merge(
+                            df_final,
+                            df,
+                            how="outer",
+                            left_on=["BMP_ID", "Organization"],
+                            right_on=["BMP_ID", "Organization"],
+                        )
+                    else:
+                        table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
+                        df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
+
+            # If BMP, save the final DataFrame to the database
+            if "BMP" in db_name and not df_final.empty:
+                current_year = datetime.now().year
+                df_final.to_sql(f"{db_name}_{current_year - 1}_{current_year}", conn, if_exists=conflict_action, index=False)
 
             conn.close()
             results[db_name] = db_path
