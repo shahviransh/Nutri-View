@@ -2219,8 +2219,8 @@ def convert_excels_to_db_service(excel_files, data):
                                 df_final = merged
                                 
                                 # Replace empty strings with NaN and drop empty rows
-                                df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                                df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
+                                df_final.replace(r'^\s*$', None, regex=True, inplace=True)
+                                df_final.replace(r'(?i)^nan$', None, regex=True, inplace=True)
                                 df_final.dropna(how='all', inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
