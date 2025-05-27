@@ -2232,7 +2232,7 @@ def convert_excels_to_db_service(excel_files, data):
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
                 current_year = datetime.now().year
-                df_final.to_sql(f"{db_name}_{current_year - 1}_{current_year}", conn, if_exists=conflict_action, index=False)
+                df_final.to_sql(f"{current_year - 1}_{current_year}_{db_name}", conn, if_exists=conflict_action, index=False)
 
             conn.close()
             results[db_name] = db_path
