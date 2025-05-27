@@ -2241,3 +2241,70 @@ def convert_excels_to_db_service(excel_files, data):
 
     except Exception as e:
         return {"error": str(e)}
+    
+def convert_to_gpkg_service(uploaded_files):
+    """
+    Convert uploaded shapefiles or GeoTIFF files to GeoPackage format.
+    """
+    import subprocess
+    
+    # Clear existing temp files (optional safety)
+    for f in os.listdir(Config.TEMPDIR):
+        try:
+            os.remove(os.path.join(Config.TEMPDIR, f))
+        except Exception:
+            continue
+
+    output_files = []
+
+    # Save all files to Config.TEMPDIR
+    for file in uploaded_files:
+        file_path = os.path.join(Config.TEMPDIR, file.filename)
+        file.save(file_path)
+
+    # Group files by basename for shapefile components
+    base_names = set(os.path.splitext(f.filename)[0] for f in uploaded_files)
+
+    output_gpkg = os.path.join(Config.BASE_DIR, "combined.gpkg")
+    first_layer_created = False
+
+    try:
+        for base in base_names:
+            shp_path = os.path.join(Config.TEMPDIR, base + ".shp")
+            tif_path = os.path.join(Config.TEMPDIR, base + ".tif")
+
+            if os.path.exists(shp_path):
+                if not first_layer_created:
+                    # Create new gpkg from first shapefile
+                    subprocess.run(["ogr2ogr", "-f", "GPKG", output_gpkg, shp_path], check=True)
+                    first_layer_created = True
+                else:
+                    # Append to existing gpkg
+                    subprocess.run([
+                        "ogr2ogr", "-f", "GPKG", "-update", "-append",
+                        output_gpkg, shp_path,
+                        "-nln", base
+                    ], check=True)
+            elif os.path.exists(tif_path):
+                layer_name = base
+                if not first_layer_created:
+                    # Create new gpkg from first raster
+                    subprocess.run([
+                        "gdal_translate", "-of", "GPKG",
+                        tif_path, output_gpkg,
+                        "-co", f"RASTER_TABLE={layer_name}"
+                    ], check=True)
+                    first_layer_created = True
+                else:
+                    # Append raster to existing gpkg
+                    subprocess.run([
+                        "gdal_translate", "-of", "GPKG",
+                        tif_path, output_gpkg,
+                        "-co", f"RASTER_TABLE={layer_name}",
+                        "-co", "APPEND_SUBDATASET=YES"
+                    ], check=True)
+
+        return {"message": "Conversion successful", "file_path": output_gpkg}
+
+    except Exception as e:
+        return {"error": str(e)}

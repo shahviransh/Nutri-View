@@ -24,6 +24,7 @@ from services import (
     export_map_service,
     fetch_geojson_colors,
     convert_excels_to_db_service,
+    convert_to_gpkg_service,
 )
 from utils import shutdown_server, clear_cache
 from validate import (
@@ -312,17 +313,34 @@ def register_routes(app, cache):
     
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     def convert_excels_to_db():
+        """
+        API endpoint to convert Excel files to database entries.
+        """
         excel_files = request.files.getlist("files")
         data = request.form.to_dict()
 
         if not excel_files:
             return jsonify({"error": "Files and mapping data required"})
 
-        # Call the updated service
         result = convert_excels_to_db_service(excel_files, data)
 
         # Return all created database paths
         return jsonify(result)
+
+    @app.route("/api/convert_to_gpkg", methods=["POST"])
+    def convert_to_gpkg():
+        """
+        API endpoint to convert uploaded files to GPKG format.
+        """
+        uploaded_files = request.files.getlist("files")
+
+        if not uploaded_files:
+            return jsonify({"error": "No files uploaded"})
+
+        converted_files = convert_to_gpkg_service(uploaded_files)
+        
+        # Return single GPKG file path
+        return jsonify(converted_files)
 
     @app.route("/api/health", methods=["GET"])
     def health():
