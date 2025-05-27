@@ -2177,7 +2177,7 @@ def convert_excels_to_db_service(excel_files, data):
                             cols[i] = f"{cols[i-1]}_{i}"
 
                     # Reassign the fixed column names back to df
-                    df.columns = [col.replace(" ", "_").strip() if isinstance(col, str) else col for col in cols]
+                    df.columns = [col.strip().replace(" ", "_") if isinstance(col, str) else col for col in cols]
                     config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
                     merged_cols = config.get("merged_columns", 0)
                     columns_to_ffill = config.get("columns", [])
@@ -2192,14 +2192,36 @@ def convert_excels_to_db_service(excel_files, data):
                             df[col] = df[col].ffill()
                             
                     if "BMP" in db_name:
-                        # Merge with the final DataFrame on BMP_ID and Organization
-                        df_final = pd.merge(
-                            df_final,
-                            df,
-                            how="outer",
-                            left_on=["BMP_ID", "Organization"],
-                            right_on=["BMP_ID", "Organization"],
-                        )
+                        if not df.empty and "BMP_ID" in df.columns and "Organization" in df.columns:                  
+                            # Ensure merge keys are the same dtyp
+                            df["Organization"] = df["Organization"].astype(str)
+                            df["BMP_ID"] = df["BMP_ID"].astype(str)
+                            if df_final.empty:
+                                df_final = df
+                            else:                         
+                                # Merge with the final DataFrame on BMP_ID and Organization
+                                merged = pd.merge(
+                                    df_final,
+                                    df,
+                                    how="outer",
+                                    left_on=["BMP_ID", "Organization"],
+                                    right_on=["BMP_ID", "Organization"],
+                                    suffixes=("_x", "_y")
+                                )
+
+                                # Automatically resolve conflicts by prioritizing _x columns and dropping _y
+                                for col in merged.columns:
+                                    if col.endswith("_x") and col[:-2] + "_y" in merged.columns:
+                                        base = col[:-2]
+                                        merged[base] = merged[col].where(merged[col].notna(), merged[base + "_y"])
+                                        merged.drop([col, base + "_y"], axis=1, inplace=True)
+
+                                df_final = merged
+                                
+                                # Replace empty strings with NaN and drop empty rows
+                                df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+                                df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
+                                df_final.dropna(how='all', inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
                         df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
