@@ -2112,7 +2112,6 @@ def convert_excels_to_db_service(excel_files, data):
     mapping = data.get("mapping")
     header_mapping = data.get("header_mapping")
     merged_mapping = data.get("merged_mapping")
-    conflict_action = data.get("conflict_action", "replace")
     saved_files = {}
     results = {}
     used_sheets = {}
@@ -2225,7 +2224,7 @@ def convert_excels_to_db_service(excel_files, data):
                                 df_final.fillna("NaN", inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
-                        df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
+                        df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
@@ -2233,7 +2232,7 @@ def convert_excels_to_db_service(excel_files, data):
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
                 current_year = datetime.now().year
-                df_final.to_sql(f"{os.path.splitext(db_name)[0]}_{current_year - 1}_{current_year}", conn, if_exists=conflict_action, index=False)
+                df_final.to_sql(f"{os.path.splitext(db_name)[0]}_{current_year - 1}_{current_year}", conn, if_exists="replace", index=False)
 
             conn.close()
             results[db_name] = db_path
