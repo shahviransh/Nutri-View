@@ -119,6 +119,10 @@ export default {
           files: [{ filename: "", sheets: "" }]
         },
         {
+          name: "GeoDB.gpkg",
+          files: [{ filename: "", sheets: "" }]
+        },
+        {
           name: "WQ.db3",
           files: [{ filename: "", sheets: "" }]
         }
@@ -195,6 +199,12 @@ export default {
           const wqDb = this.mappingForm.find(db => db.name === "WQ.db3");
           if (wqDb) wqDb.files.push({ filename: file.name, sheets: "" });
         }
+
+        if ([".shp", ".tif", ".geojson", ".gpkg", ".shx", ".dbf", ".cpg", ".prj", ".sbn", ".sbx"].some(ext => name.endsWith(ext))) {
+          // Assign to GeoDB.gpkg
+          const geoDb = this.mappingForm.find(db => db.name === "GeoDB.gpkg");
+          if (geoDb) geoDb.files.push({ filename: file.name, sheets: "" });
+        }
       });
     },
     addDatabaseEntry() {
@@ -226,38 +236,71 @@ export default {
       return mapping;
     },
     async submitForm() {
-      const formData = new FormData();
-      this.files.forEach(file => formData.append("files", file));
-      const headerMappingJson = {};
-      this.headerMapping.forEach(e => {
-        if (e.sheet) headerMappingJson[e.sheet] = Number(e.row);
-      });
+      const geoDb = this.mappingForm.find(db => db.name === "GeoDB.gpkg");
+      const otherDbs = this.mappingForm.filter(db => db.name !== "GeoDB.gpkg");
 
-      const mergedMappingJson = {};
-      this.mergedMapping.forEach(e => {
-        if (e.sheet) {
-          mergedMappingJson[e.sheet] = {
-            merged_columns: Number(e.merged_columns),
-            columns: e.columns ? e.columns.split(",").map(c => c.trim()) : []
+      // Submit standard Excel-to-DB conversion
+      if (otherDbs.length > 0) {
+        const formData = new FormData();
+        this.files.forEach(file => formData.append("files", file));
+
+        const headerMappingJson = {};
+        this.headerMapping.forEach(e => {
+          if (e.sheet) headerMappingJson[e.sheet] = Number(e.row);
+        });
+
+        const mergedMappingJson = {};
+        this.mergedMapping.forEach(e => {
+          if (e.sheet) {
+            mergedMappingJson[e.sheet] = {
+              merged_columns: Number(e.merged_columns),
+              columns: e.columns ? e.columns.split(",").map(c => c.trim()) : []
+            };
+          }
+        });
+
+        formData.append("mapping", JSON.stringify(this.buildMappingFromList(otherDbs)));
+        formData.append("header_mapping", JSON.stringify(headerMappingJson));
+        formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
+
+        try {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+          this.response = response.data;
+        } catch (error) {
+          this.response = {
+            error: error.response.data?.error || error.response.statusText || "An error occurred",
+            status: error.response.status
+          };
+          return;
+        }
+      }
+
+      // Submit GeoDB.gpkg files separately
+      if (geoDb && geoDb.files.length > 0) {
+        const geoForm = new FormData();
+        geoDb.files.forEach(f => {
+          const file = this.files.find(uploaded => uploaded.name === f.filename);
+          if (file) geoForm.append("files", file);
+        });
+
+        try {
+          const geoResp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_to_gpkg`, geoForm, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+
+          if (!this.response) this.response = {};
+          this.response["GeoDB.gpkg"] = geoResp.data;
+        } catch (error) {
+          if (!this.response) this.response = {};
+          this.response["GeoDB.gpkg"] = {
+            error: error.response.data?.error || error.response.statusText || "An error occurred",
+            status: error.response.status
           };
         }
-      });
-
-      formData.append("mapping", JSON.stringify(this.buildMapping()));
-      formData.append("header_mapping", JSON.stringify(headerMappingJson));
-      formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
-      try {
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-        this.response = response.data;
-      } catch (error) {
-        this.response = {
-          error: error.response.data?.error || error.response.statusText || "An error occurred",
-          status: error.response.status
-        };
       }
-    }
+    },
   }
 };
 </script>
