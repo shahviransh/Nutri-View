@@ -24,7 +24,6 @@ import pyogrio
 from osgeo import ogr, osr, gdal
 from zipfile import ZipFile, ZIP_DEFLATED
 from werkzeug.utils import safe_join
-
 import re
 import numexpr as ne
 
@@ -966,7 +965,7 @@ def get_files_and_folders(data):
 
                 # Only include .shp, .db3, and .tif files
                 if file_rel_path.endswith(
-                    (".shp", ".db3", ".tif", ".tiff")
+                    (".shp", ".db3", ".gpkg", ".tif", ".tiff")
                 ) and not file_rel_path.endswith("reprojected.tif"):
                     if file_rel_path.endswith(".db3") and "lookup" not in file_rel_path:
                         folder_tree.add(os.path.join(Config.PATHFILE, file_rel_path))
@@ -1313,10 +1312,9 @@ def get_multi_columns_and_time_range(data):
             and (id_column or "ID") not in col
         ]
 
-        # Intersection of IDs from all tables
-        ids = set(multi_columns_time_range[0]["ids"]).intersection(
-            *[set(table["ids"]) for table in multi_columns_time_range]
-        )
+        # Intersection of IDs from all tables and filter out None values
+        id_sets = [set(filter(lambda x: x is not None, table["ids"])) for table in multi_columns_time_range]
+        ids = set.intersection(*id_sets) if id_sets else set()
 
         return {
             "columns": columns,
@@ -2265,7 +2263,7 @@ def convert_to_gpkg_service(uploaded_files):
     # Group files by basename for shapefile components
     base_names = set(os.path.splitext(f.filename)[0] for f in uploaded_files)
 
-    output_gpkg = os.path.join(Config.BASE_DIR, "combined.gpkg")
+    output_gpkg = os.path.join(Config.BASE_DIR, "GeoDB.gpkg")
     first_layer_created = False
 
     try:
