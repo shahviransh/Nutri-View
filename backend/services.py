@@ -2302,7 +2302,7 @@ def convert_to_gpkg_service(uploaded_files):
                         "-co", "APPEND_SUBDATASET=YES"
                     ], check=True)
 
-        return {"message": "Conversion successful", "file_path": output_gpkg}
+        return output_gpkg
 
     except Exception as e:
         return {"error": str(e)}

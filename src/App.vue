@@ -162,7 +162,8 @@ export default {
   },
   methods: {
     handleFileUpload(event) {
-      this.files = Array.from(event.target.files);
+      const newFiles = Array.from(event.target.files);
+      this.files = [...this.files, ...newFiles];
       this.autoSelectFiles();
     },
     removeDatabaseEntry(index) {
@@ -223,9 +224,9 @@ export default {
     addMergedMappingEntry() {
       this.mergedMapping.push({ sheet: "", merged_columns: 0, columns: "" });
     },
-    buildMapping() {
+    buildMappingFromList(mappingList) {
       const mapping = {};
-      for (const db of this.mappingForm) {
+      for (const db of mappingList) {
         mapping[db.name] = {};
         for (const file of db.files) {
           mapping[db.name][file.filename] = file.sheets
