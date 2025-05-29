@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Excel file(s) to Database(s) Converter</h1>
+    <h1>Excel file(s) to Database(s) Converter and Shapefiles/Raster to GeoPackage Converter</h1>
 
     <input type="file" multiple @change="handleFileUpload" class="file-input" />
 
