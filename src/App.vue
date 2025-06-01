@@ -37,7 +37,7 @@
       <button @click="addDatabaseEntry" class="add-button">+ Add Database</button>
     </div>
 
-    <div class="section">
+    <!-- <div class="section">
       <label>
         Header Mapping:
         <span class="tooltip">❓
@@ -83,7 +83,7 @@
         <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
       </div>
       <button @click="addMergedMappingEntry" class="add-button">+ Add Merged Rule</button>
-    </div>
+    </div> -->
 
     <button @click="submitForm" class="submit-button">Submit</button>
 
