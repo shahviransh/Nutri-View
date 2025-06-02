@@ -14,7 +14,7 @@
             already used in prior databases.
             <br /><br />
             Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
-            db2.db3 includes the remaining unused sheets from file1.xlsx or file2.xlsx.
+            db2.db3 includes the remaining unused sheets from file1.xlsx.
           </span>
         </span>
       </label>
