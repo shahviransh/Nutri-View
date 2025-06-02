@@ -21,7 +21,11 @@
       <div v-for="(db, dbIndex) in mappingForm" :key="dbIndex" class="db-box">
         <button @click="removeDatabaseEntry(dbIndex)" class="delete-button">✕</button>
         <input v-model="db.name" placeholder="Database Name" class="text-input" />
-        <div v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
+        <div v-if="db.name === 'GeoDB.gpkg'" class="sheet-box">
+          <div v-if="hasShapefiles" class="text-input">Shapefiles selected</div>
+          <div v-if="hasRasters" class="text-input">Rasters selected</div>
+        </div>
+        <div v-else v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
           <button @click="removeFileEntry(dbIndex, fileIndex)" class="delete-button">✕</button>
           <select v-model="sheetEntry.filename" class="text-input">
             <option disabled value="">Select File</option>
@@ -100,6 +104,10 @@
       </ul>
     </div>
   </div>
+  <div v-if="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <span>Uploading and processing files...</span>
+  </div>
 </template>
 
 <script>
@@ -109,6 +117,7 @@ export default {
   data() {
     return {
       files: [],
+      loading: false,
       mappingForm: [
         {
           name: "PMs.db3",
@@ -154,6 +163,16 @@ export default {
           );
         });
       });
+    },
+    hasShapefiles() {
+      return this.mappingForm.find(db => db.name === "GeoDB.gpkg")?.files.some(f =>
+        f.filename.toLowerCase().match(/\.(shp|shx|dbf|prj|cpg|sbn|sbx)$/)
+      );
+    },
+    hasRasters() {
+      return this.mappingForm.find(db => db.name === "GeoDB.gpkg")?.files.some(f =>
+        f.filename.toLowerCase().endsWith(".tif")
+      );
     }
   },
   methods: {
@@ -261,10 +280,12 @@ export default {
         formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
 
         try {
+          this.loading = true;
           const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
             headers: { "Content-Type": "multipart/form-data" }
           });
           this.response = response.data;
+          this.loading = false;
         } catch (error) {
           this.response = {
             error: error.response.data?.error || error.response.statusText || "An error occurred",
@@ -282,6 +303,22 @@ export default {
           if (file) geoForm.append("files", file);
         });
 
+        const requiredCompanions = ['shp', 'shx', 'dbf', 'prj'];
+        const baseNames = geoDb.files.filter(f => !f.filename.toLowerCase().endsWith('.tif')).map(f => f.filename.slice(0, -4));
+
+        const missingWarnings = baseNames.map(base => {
+          const present = requiredCompanions.filter(ext =>
+            this.files.some(f => f.name === `${base}.${ext}`)
+          );
+          const missing = requiredCompanions.filter(ext => !present.includes(ext));
+          return missing.length ? `"${base}" is missing: ${missing.join(', ')}` : null;
+        }).filter(msg => msg);
+
+        if (missingWarnings.length) {
+          this.response = { error: "Missing shapefile components:\n" + missingWarnings.join("\n") };
+          return;
+        }
+
         try {
           const geoResp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_to_gpkg`, geoForm, {
             headers: { "Content-Type": "multipart/form-data" }
@@ -292,8 +329,8 @@ export default {
         } catch (error) {
           if (!this.response) this.response = {};
           this.response["GeoDB.gpkg"] = {
-            error: error.response.data?.error || error.response.statusText || "An error occurred",
-            status: error.response.status
+            error: error.response?.data?.error || error.response?.statusText || "An error occurred",
+            status: error.response?.status
           };
         }
       }
@@ -312,6 +349,40 @@ export default {
   border: 1px solid #ddd;
   border-radius: 8px;
   color: black;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 h1 {
