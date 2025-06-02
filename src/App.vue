@@ -121,10 +121,6 @@ export default {
         {
           name: "GeoDB.gpkg",
           files: [{ filename: "", sheets: "" }]
-        },
-        {
-          name: "WQ.db3",
-          files: [{ filename: "", sheets: "" }]
         }
       ],
       headerMapping: [{ sheet: "default", row: 4 },
