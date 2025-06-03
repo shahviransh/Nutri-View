@@ -351,6 +351,7 @@ export default {
     border: 1px solid #ddd;
     border-radius: 8px;
     color: black;
+    color-scheme: light dark;
 }
 
 .loading-overlay {
