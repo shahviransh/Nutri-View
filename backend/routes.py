@@ -81,6 +81,7 @@ def register_routes(app, cache):
         return jsonify(access_token=access_token)
 
     @app.route("/api/logout", methods=["POST"])
+    @jwt_required()
     def logout():
         """
         Logout the user by revoking the token.
@@ -106,6 +107,7 @@ def register_routes(app, cache):
             return jsonify({"valid": False}), 401
 
     @app.route("/api/upload_folder", methods=["POST"])
+    @jwt_required()
     def upload_folder():
         """
         Endpoint to upload a folder with files to the server.
@@ -138,6 +140,7 @@ def register_routes(app, cache):
         )
 
     @app.route("/api/get_data", methods=["GET"])
+    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_data():
         data = request.args
@@ -152,6 +155,7 @@ def register_routes(app, cache):
         return jsonify(response)
 
     @app.route("/api/export_data", methods=["GET", "POST"])
+    @jwt_required()
     # This endpoint is not cached because the file is generated dynamically
     def export_data():
         data = request.args if request.method == "GET" else request.json
@@ -185,6 +189,7 @@ def register_routes(app, cache):
         )
 
     @app.route("/api/get_tables", methods=["GET"])
+    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_tables():
         data = request.args
@@ -200,6 +205,7 @@ def register_routes(app, cache):
         return jsonify(tables.get("tables"))
 
     @app.route("/api/list_files", methods=["GET"])
+    @jwt_required()
     def list_files():
         """
         Endpoint to list all files and directories in the specified path.
@@ -216,6 +222,7 @@ def register_routes(app, cache):
         return jsonify(files_and_folders.get("files_and_folders"))
 
     @app.route("/api/get_table_details", methods=["GET"])
+    @jwt_required()
     @cache.cached(
         timeout=300, query_string=True
     )  # Cache this endpoint for 2 minutes (120 seconds)
@@ -235,6 +242,7 @@ def register_routes(app, cache):
         return jsonify(columns_and_time_range_dict)
 
     @app.route("/api/geospatial", methods=["GET"])
+    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def geospatial():
         """
@@ -252,6 +260,7 @@ def register_routes(app, cache):
         return jsonify(geo_data)
 
     @app.route("/api/geotiff/<path:filename>", methods=["GET"])
+    @jwt_required()
     def serve_tif(filename):
         """
         Serve the TIF file from the specified path.
@@ -271,6 +280,7 @@ def register_routes(app, cache):
         return send_file(filename, mimetype="image/png", as_attachment=True)
 
     @app.route("/api/get_geojson_colors", methods=["GET"])
+    @jwt_required()
     @cache.cached(timeout=300, query_string=True)
     def get_geojson_colors():
         """
@@ -288,6 +298,7 @@ def register_routes(app, cache):
         return jsonify(colors)
 
     @app.route("/api/export_map", methods=["POST"])
+    @jwt_required()
     def export_map():
         """
         API endpoint to export the map image.
@@ -312,6 +323,7 @@ def register_routes(app, cache):
         )
     
     @app.route("/api/convert_excels_to_db", methods=["POST"])
+    @jwt_required()
     def convert_excels_to_db():
         """
         API endpoint to convert Excel files to database entries.
@@ -328,6 +340,7 @@ def register_routes(app, cache):
         return jsonify(result)
 
     @app.route("/api/convert_to_gpkg", methods=["POST"])
+    @jwt_required()
     def convert_to_gpkg():
         """
         API endpoint to convert uploaded files to GPKG format.

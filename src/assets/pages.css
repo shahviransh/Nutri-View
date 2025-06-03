@@ -1,0 +1,204 @@
+/* Theme variables */
+.light {
+    --background-color: #ffffff;
+    --text-color: #000000;
+    --border-color: #ddd;
+    --secondary-bg-color: #f3f3f3;
+    --hover-bg-color: #f1f1f1;
+    --table-header-bg: #9e3203;
+    --table-header-text: #ffffff;
+    --button-bg: #dfd1ff;
+    --button-text: #1F2937;
+    --top-bar-bg: #b85b14;
+    --top-bar-text: #fff;
+    --taskbar-bg: #35495e;
+    --taskbar-text: #fff;
+    --active-bg: #009879;
+}
+
+.dark {
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --border-color: #444;
+    --secondary-bg-color: #333;
+    --hover-bg-color: #555;
+    --table-header-bg: #444;
+    --table-header-text: #e0e0e0;
+    --button-bg: #333;
+    --button-text: #e0e0e0;
+    --top-bar-bg: #1e1e1e;
+    --top-bar-text: #e0e0e0;
+    --taskbar-bg: #2d2d2d;
+    --taskbar-text: #cfcfcf;
+    --active-bg: #5a5a5a;
+}
+
+:root {
+    --top-bar-height: 14vh;
+    --task-bar-height: 0;
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color: rgba(255, 255, 255, 0.87);
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    /* Ensure no scroll at the global level */
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+.content {
+    display: flex;
+    flex-direction: row;
+    /* Adjust to the viewport, minus top bar and taskbar */
+    overflow: hidden;
+}
+
+.multiselect {
+    font-size: 14px;
+}
+
+label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.folder-navigation,
+.column-navigation,
+.settings-panel,
+.main-view,
+.table-container,
+.stats-container {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.folder-navigation {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    /* Takes 1/4 of the horizontal space */
+    height: calc(100% - 3%);
+    margin: 0;
+    padding: 10px;
+    /* Takes 1/4 of the vertical space */
+    overflow: auto;
+}
+
+.column-navigation {
+    margin: 0;
+    padding: 0px;
+    width: 15%;
+    height: 100%;
+    flex-direction: column;
+}
+
+/* Right Panel: Settings Panel and Main View */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    height: 100%;
+}
+
+.settings-panel {
+    width: 99%;
+    /* Takes 2/4 of the horizontal space */
+    height: auto;
+    min-height: 180px;
+    max-height: 15%;
+    margin: 0px;
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.main-view {
+    width: 99%;
+    /* Takes 2/4 of the horizontal space */
+    height: calc(100% - max(180px, 15%));
+    /* Takes remaining space */
+    margin: 0px;
+    padding: 0px;
+    overflow: auto;
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+}
+
+.table-container,
+.stats-container {
+    max-width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+
+.styled-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: var(--secondary-bg-color);
+}
+
+.styled-table tbody tr:hover {
+    background-color: var(--hover-bg-color);
+}
+
+button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 0.2rem;
+    margin-bottom: 0.5rem;
+    margin-inline-end: 0.2rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--hover-bg-color);
+    transform: translateY(-2px);
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+}

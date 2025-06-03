@@ -1,5 +1,9 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.vue';
+import store from './store'; // Import the Vuex store
+import router from './router'; // Import the Vue Router
 
-createApp(App).mount('#app')
+createApp(App)
+  .use(store) // Register Vuex store
+  .use(router) // Register Vue Router
+  .mount('#app');

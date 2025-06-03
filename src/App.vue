@@ -1,378 +1,396 @@
 <template>
-  <div class="container">
-    <h1>Excel file(s) to Database(s) Converter and Shapefiles/Rasters to GeoPackage Converter</h1>
-
-    <input type="file" multiple @change="handleFileUpload" class="file-input" />
-
-    <div class="section">
-      <label>
-        Database Mapping:
-        <span class="tooltip">❓
-          <span class="tooltiptext">
-            Define which Excel files and sheets go into which SQLite database (.db3).
-            You can reuse the same file across databases. Leave "Sheets" blank to automatically include sheets not
-            already used in prior databases.
-            <br /><br />
-            Example: db1.db3 uses Sheet1 and Sheet3 from file1.xlsx.
-            db2.db3 includes the remaining unused sheets from file1.xlsx.
-          </span>
-        </span>
-      </label>
-      <div v-for="(db, dbIndex) in mappingForm" :key="dbIndex" class="db-box">
-        <button @click="removeDatabaseEntry(dbIndex)" class="delete-button">✕</button>
-        <input v-model="db.name" placeholder="Database Name" class="text-input" />
-        <div v-if="db.name === 'GeoDB.gpkg'" class="sheet-box">
-          <div v-if="hasShapefiles" class="text-input">Shapefiles selected</div>
-          <div v-if="hasRasters" class="text-input">Rasters selected</div>
-        </div>
-        <div v-else v-for="(sheetEntry, fileIndex) in db.files" :key="fileIndex" class="sheet-box">
-          <button @click="removeFileEntry(dbIndex, fileIndex)" class="delete-button">✕</button>
-          <select v-model="sheetEntry.filename" class="text-input">
-            <option disabled value="">Select File</option>
-            <option v-for="file in availableFilesPerDB[dbIndex][fileIndex]" :key="file.name" :value="file.name">
-              {{ file.name }}
-            </option>
-          </select>
-          <span>:</span>
-          <input v-model="sheetEntry.sheets" placeholder="Sheets (comma-separated)" class="text-input ml" />
-        </div>
-        <button @click="addFileEntry(db)" class="add-button">+ Add File Entry</button>
-      </div>
-      <button @click="addDatabaseEntry" class="add-button">+ Add Database</button>
+  <Loading v-if="isLoading" />
+  <Login v-else-if="!isAuthenticated" v-model:isAuthenticated="isAuthenticated" />
+  <div v-else id="papp" :class="theme">
+    <div v-if="isUploading" class="upload-loader">
+      <div class="spinner"></div>
+      <h3>{{ uploadMessage }}</h3>
     </div>
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="title-container">
+        <h2>CWA Viewer</h2>
+      </div>
+      <button class="logout-button" @click="logout">🚪 Logout</button>
+      <button class="theme-switch" @click="toggleTheme">
+        <span v-if="theme === 'light'">🌞</span>
+        <span v-else>🌜</span>
+      </button>
+    </header>
 
-    <!-- <div class="section">
-      <label>
-        Header Mapping:
-        <span class="tooltip">❓
-          <span class="tooltiptext">
-            Specify which row to treat as column headers for each sheet.
-            Use "default" for most sheets, or provide sheet-specific overrides.
-            <br /><br />
-            Example: default = 2, Sheet5 = 1<br />
-            This will use row 2 for most sheets, but row 1 for Sheet5.
-          </span>
+    <!-- Taskbar -->
+    <nav class="taskbar">
+      <div class="taskbar-left">
+        <button @click="selectFolder">📁 Select Folder</button>
+        <span class="folder-path">{{ modelFolder }}</span>
+        <!-- Placeholder for additional tools components -->
+        <span v-if="activePage === 'Graph'">
+          <button @click="handleZoomIn">Zoom In</button>
+          <button @click="handleZoomOut">Zoom Out</button>
+          <button @click="handleResetZoom">Reset Zoom</button>
         </span>
-      </label>
-      <div v-for="(entry, index) in headerMapping" :key="index" class="sheet-box">
-        <button @click="removeHeaderMappingEntry(index)" class="delete-button">✕</button>
-        <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
-        <span>:</span>
-        <input v-model.number="entry.row" placeholder="Header Row (1-based)" type="number" class="text-input ml" />
-      </div>
-      <button @click="addHeaderMappingEntry" class="add-button">+ Add Header Rule</button>
-    </div>
 
-    <div class="section">
-      <label>
-        Merged Mapping:
-        <span class="tooltip">❓
-          <span class="tooltiptext">
-            Used to fill down merged cells or partially empty columns in specific sheets.
-            Set how many of the left-most columns to auto-forward fill for merged cell correction.
-            You can also list specific columns by name to forward-fill (e.g., repeated labels or categories).
-            <br /><br />
-            Example: sheet_name = "Sheet1" merged_columns = 2, columns = ["Country"]<br />
-            This will forward-fill the first two columns from the left and also fill the "Country" column only in
-            Sheet1.
-          </span>
+        <span>
+          <button @click="showCalculator = true">Calculator ➕➖✖️➗</button>
         </span>
-      </label>
-      <div v-for="(entry, index) in mergedMapping" :key="index" class="db-box">
-        <button @click="removeMergedMappingEntry(index)" class="delete-button">✕</button>
-        <input v-model="entry.sheet" placeholder="Sheet Name" class="text-input" />
-        <span>:</span>
-        <input v-model.number="entry.merged_columns" placeholder="Auto-fill Left Columns" type="number"
-          class="text-input ml" />
-        <input v-model="entry.columns" placeholder="Column Names (comma-separated)" class="text-input ml" />
       </div>
-      <button @click="addMergedMappingEntry" class="add-button">+ Add Merged Rule</button>
-    </div> -->
-
-    <button @click="submitForm" class="submit-button">Submit</button>
-
-    <div v-if="response" class="response">
-      <h2>Response</h2>
-      <div v-if="response.error" class="error-message">
-        <div><strong>Status:</strong> {{ response.status || "Unknown" }}</div>
-        <div><strong>Message:</strong> {{ response.error }}</div>
+      <div class="taskbar-right">
+        <button v-for="page in pages" :key="page" :class="{ active: page === activePage }" @click="navigateTo(page)">{{
+          page }}</button>
       </div>
-      <ul v-else>
-        <li v-for="(path, dbname) in response" :key="dbname">
-          <strong>{{ dbname }}</strong>: {{ path }}
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div v-if="loading" class="loading-overlay">
-    <div class="spinner"></div>
-    <span>Uploading and processing files...</span>
+    </nav>
+
+    <Calculator v-if="showCalculator" @closePopup="showCalculator = false" />
+    <!-- Main Content -->
+    <router-view class="main-content" />
+    <MessageBox />
   </div>
 </template>
 
 <script>
+import { mapState, mapActions } from "vuex";
+import MessageBox from "./components/MessageBox.vue";
+import Calculator from "./components/Calculator.vue";
+import Login from "./pages/Login.vue";
+import Loading from "./pages/Loading.vue";
 import axios from "axios";
+import { open } from "@tauri-apps/plugin-dialog";
+import { dirname } from "@tauri-apps/api/path";
 
 export default {
+  name: "App",
   data() {
     return {
-      files: [],
-      loading: false,
-      mappingForm: [
-        {
-          name: "PMs.db3",
-          files: [{ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" }]
-        },
-        {
-          name: "BMP.db3",
-          files: [{ filename: "", sheets: "" }]
-        },
-        {
-          name: "GeoDB.gpkg",
-          files: [{ filename: "", sheets: "" }]
-        }
+      isAuthenticated: false,
+      isLoading: true,
+      pages: [
+        "Project",
+        "Table",
+        "Graph",
+        "Map",
+        "Converter",
+        "Help",
       ],
-      headerMapping: [{ sheet: "default", row: 4 },
-      { sheet: "1. EOF P Reductions", row: 3 },
-      { sheet: "Sheet1", row: 3 },
-      ],
-      mergedMapping: [{
-        sheet: "1. EOF P Reductions",
-        merged_columns: 4
-      },
-      {
-        sheet: "2. Performance Measures",
-        merged_columns: 1,
-      }],
-      response: null,
+      activePage: "Project", // Set default page here
+      showCalculator: false,
+      isUploading: false,
+      uploadMessage: "Uploading folder, please wait...",
     };
   },
   computed: {
-    availableFilesPerDB() {
-      return this.mappingForm.map(db => {
-        return db.files.map(currentEntry => {
-          // Filter out files that are already selected in the current database
-          // and also filter out the current entry to avoid duplicates
-          const selectedFilenames = db.files
-            .filter(entry => entry !== currentEntry)
-            .map(entry => entry.filename);
-          return this.files.filter(
-            file =>
-              !selectedFilenames.includes(file.name) ||
-              file.name === currentEntry.filename
-          );
-        });
-      });
-    },
-    hasShapefiles() {
-      return this.mappingForm.find(db => db.name === "GeoDB.gpkg")?.files.some(f =>
-        f.filename.toLowerCase().match(/\.(shp|shx|dbf|prj|cpg|sbn|sbx)$/)
-      );
-    },
-    hasRasters() {
-      return this.mappingForm.find(db => db.name === "GeoDB.gpkg")?.files.some(f =>
-        f.filename.toLowerCase().endsWith(".tif")
-      );
-    }
+    ...mapState(["theme", "currentZoomStart", "modelFolder", "currentZoomEnd"]),
+  },
+  components: {
+    MessageBox,
+    Login,
+    Loading,
+    Calculator,
   },
   methods: {
-    handleFileUpload(event) {
-      const newFiles = Array.from(event.target.files);
-      this.files = [...this.files, ...newFiles];
-      this.autoSelectFiles();
-    },
-    removeDatabaseEntry(index) {
-      this.mappingForm.splice(index, 1);
-    },
-    removeFileEntry(dbIndex, fileIndex) {
-      this.mappingForm[dbIndex].files.splice(fileIndex, 1);
-    },
-    removeHeaderMappingEntry(index) {
-      this.headerMapping.splice(index, 1);
-    },
-    removeMergedMappingEntry(index) {
-      this.mergedMapping.splice(index, 1);
-    },
-    autoSelectFiles() {
-      this.mappingForm.forEach(db => (db.files = []));
+    ...mapActions(["updateTheme", "updatePageTitle", "updateCurrentZoom", "updateModelFolder", "pushMessage", "fetchFolderTree"]),
+    async selectFolder() {
+      try {
+        let folderPath;
 
-      this.files.forEach(file => {
-        const name = file.name.toLowerCase();
-        // Check if the file name contains specific keywords to determine the database
-        if (name.includes("performance measures")) {
-          // Assign to PMs.db3 or BMP.db3
-          this.mappingForm.forEach(db => {
-            if (db.name === "PMs.db3" || db.name === "BMP.db3") {
-              db.files.push({
-                filename: file.name,
-                sheets: db.name === "PMs.db3" ? "1. EOF P Reductions,2. Performance Measures" : ""
+        if (window.__TAURI__) {
+          // In Tauri, use Tauri API for selecting folder
+          const selectedPath = await open({
+            directory: false,  // Allow both files and folders
+            multiple: false,  // Only allow one selection
+          });
+
+          if (selectedPath) {
+            folderPath = selectedPath.endsWith("/") ? selectedPath : await dirname(selectedPath);
+
+            // Convert folder path to universal style
+            const universalPath = folderPath.replace(/\\/g, "/");
+
+            this.updateModelFolder(universalPath);
+          }
+        } else {
+          // Not in Tauri, use HTML input element to select folder
+          const input = document.createElement("input");
+          input.type = "file";
+          input.webkitdirectory = true;
+
+          input.onchange = async (event) => {
+            const files = event.target.files;
+            if (files.length === 0) {
+              return;
+            }
+            const formData = new FormData();
+
+            // Get the folder path from the first file's webkitRelativePath
+            const firstFile = files[0].webkitRelativePath;
+            const modelFolder = firstFile.substring(0, firstFile.indexOf("/"));
+
+            // Loop through all files to maintain their folder structure
+            for (const file of files) {
+              // Use the relative path of the file to determine the subfolder structure
+              const relativePath = file.webkitRelativePath;
+              const folderPath = relativePath.slice(0, relativePath.lastIndexOf('/'));
+              formData.append('files', file, `${folderPath}/${file.name}`);
+            }
+
+            this.pushMessage({
+              message: `Uploading ${files.length} files...`,
+              type: "info"
+            });
+
+            this.isUploading = true;
+            this.uploadMessage = "Uploading folder, please wait...";
+
+            const timeout = setTimeout(() => {
+              this.uploadMessage = "Still uploading... the folder might be large, please wait a bit longer.";
+            }, 2000); // 30 seconds
+
+            // Send the form data with the files and folder structure to the backend
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/upload_folder`, formData, {
+              headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+
+            // Show loading symbol circular with saying uploading folder please wait
+            // If taking lonker than 60 seconds, show plesae wait longer folder is big
+
+
+            if (response.data.error) {
+              clearTimeout(timeout);
+              this.isUploading = false;
+              alert("Error saving folder and files: " + response.data.error);
+            } else {
+              clearTimeout(timeout);
+              this.isUploading = false;
+              this.pushMessage({
+                message: `Folder and files saved successfully!`,
+                type: "success"
               });
             }
-          });
-        }
-        if (name.includes("water quality")) {
-          // Assign to WQ.db3
-          const wqDb = this.mappingForm.find(db => db.name === "WQ.db3");
-          if (wqDb) wqDb.files.push({ filename: file.name, sheets: "" });
-        }
 
-        if ([".shp", ".tif", ".geojson", ".gpkg", ".shx", ".dbf", ".cpg", ".prj", ".sbn", ".sbx"].some(ext => name.endsWith(ext))) {
-          // Assign to GeoDB.gpkg
-          const geoDb = this.mappingForm.find(db => db.name === "GeoDB.gpkg");
-          if (geoDb) geoDb.files.push({ filename: file.name, sheets: "" });
-        }
-      });
-    },
-    addDatabaseEntry() {
-      this.mappingForm.push({ name: "", files: [] });
-    },
-    addFileEntry(db) {
-      if (db.name === "PMs.db3") {
-        db.files.push({ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" });
-      } else {
-        db.files.push({ filename: "", sheets: "" });
-      }
-    },
-    addHeaderMappingEntry() {
-      this.headerMapping.push({ sheet: "", row: 0 });
-    },
-    addMergedMappingEntry() {
-      this.mergedMapping.push({ sheet: "", merged_columns: 0, columns: "" });
-    },
-    buildMappingFromList(mappingList) {
-      const mapping = {};
-      for (const db of mappingList) {
-        mapping[db.name] = {};
-        for (const file of db.files) {
-          mapping[db.name][file.filename] = file.sheets
-            ? file.sheets.split(",").map(s => s.trim())
-            : [];
-        }
-      }
-      return mapping;
-    },
-    async submitForm() {
-      const geoDb = this.mappingForm.find(db => db.name === "GeoDB.gpkg");
-      const otherDbs = this.mappingForm.filter(db => db.name !== "GeoDB.gpkg");
-
-      // Submit standard Excel-to-DB conversion
-      if (otherDbs.length > 0) {
-        const formData = new FormData();
-        this.files.forEach(file => formData.append("files", file));
-
-        const headerMappingJson = {};
-        this.headerMapping.forEach(e => {
-          if (e.sheet) headerMappingJson[e.sheet] = Number(e.row);
-        });
-
-        const mergedMappingJson = {};
-        this.mergedMapping.forEach(e => {
-          if (e.sheet) {
-            mergedMappingJson[e.sheet] = {
-              merged_columns: Number(e.merged_columns),
-              columns: e.columns ? e.columns.split(",").map(c => c.trim()) : []
-            };
-          }
-        });
-
-        formData.append("mapping", JSON.stringify(this.buildMappingFromList(otherDbs)));
-        formData.append("header_mapping", JSON.stringify(headerMappingJson));
-        formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
-
-        try {
-          this.loading = true;
-          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-          });
-          this.response = response.data;
-          this.loading = false;
-        } catch (error) {
-          this.response = {
-            error: error.response.data?.error || error.response.statusText || "An error occurred",
-            status: error.response.status
+            this.updateModelFolder(modelFolder);
+            this.fetchFolderTree();
           };
-          return;
+
+          // Trigger the file input to open the folder selection dialog
+          input.click();
+
         }
+      } catch (error) {
+        clearTimeout(timeout);
+        this.isUploading = false;
+        console.error("Error selecting folder: ", error);
       }
-
-      // Submit GeoDB.gpkg files separately
-      if (geoDb && geoDb.files.length > 0) {
-        const geoForm = new FormData();
-        geoDb.files.forEach(f => {
-          const file = this.files.find(uploaded => uploaded.name === f.filename);
-          if (file) geoForm.append("files", file);
-        });
-
-        const requiredCompanions = ['shp', 'shx', 'dbf', 'prj'];
-        const baseNames = geoDb.files.filter(f => !f.filename.toLowerCase().endsWith('.tif')).map(f => f.filename.slice(0, -4));
-
-        const missingWarnings = baseNames.map(base => {
-          const present = requiredCompanions.filter(ext =>
-            this.files.some(f => f.name === `${base}.${ext}`)
-          );
-          const missing = requiredCompanions.filter(ext => !present.includes(ext));
-          return missing.length ? `"${base}" is missing: ${missing.join(', ')}` : null;
-        }).filter(msg => msg);
-
-        if (missingWarnings.length) {
-          this.response = { error: "Missing shapefile components:\n" + missingWarnings.join("\n") };
-          return;
-        }
-
+    },
+    navigateTo(page) {
+      this.activePage = page; // Update active page
+      this.updatePageTitle(this.activePage);
+      this.$router.push({ name: page });
+    },
+    toggleTheme() {
+      const theme = this.theme === "light" ? "dark" : "light";
+      document.body.className = theme; // Update body class for global styling
+      this.updateTheme(theme);
+    },
+    handleZoomIn() {
+      if (this.currentZoomEnd - this.currentZoomStart > 10) {
+        this.updateCurrentZoom({ start: this.currentZoomStart + 10, end: this.currentZoomEnd - 10 });
+      }
+    },
+    handleZoomOut() {
+      if (this.currentZoomStart > 0) {
+        this.updateCurrentZoom({ start: this.currentZoomStart - 10, end: this.currentZoomEnd + 10 });
+      }
+    },
+    handleResetZoom() {
+      this.updateCurrentZoom({ start: 0, end: 100 });
+    },
+    async checkServerStatus() {
+      // Check if the server is running, keep checking every 2 seconds
+      const interval = setInterval(async () => {
         try {
-          const geoResp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_to_gpkg`, geoForm, {
-            headers: { "Content-Type": "multipart/form-data" }
-          });
-
-          if (!this.response) this.response = {};
-          this.response["GeoDB.gpkg"] = geoResp.data;
+          await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/health`);
+          this.isLoading = false;
+          clearInterval(interval); // Stop checking once successful
         } catch (error) {
-          if (!this.response) this.response = {};
-          this.response["GeoDB.gpkg"] = {
-            error: error.response?.data?.error || error.response?.statusText || "An error occurred",
-            status: error.response?.status
-          };
+          console.error("Server is not running", error);
         }
+      }, 2000);
+    },
+    async checkAuth() {
+      const token = localStorage.getItem("token");
+
+      // Check if token is present and valid
+      if (!token) {
+        this.isAuthenticated = false;
+        return;
+      }
+      try {
+        // Verify token with the server
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/verify-token`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        this.isAuthenticated = response.status === 200;
+      } catch {
+        localStorage.removeItem("token");
+        this.isAuthenticated = false;
+      }
+    },
+    async logout() {
+      try {
+        // Clear token from local storage and logout from the server
+        const token = localStorage.getItem("token");
+        if (token) {
+          await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/logout`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } catch (error) {
+        console.error("Logout failed", error);
+      } finally {
+        localStorage.removeItem("token");
+        this.isAuthenticated = false;
+      }
+    },
+  },
+  async mounted() {
+    // Set initial theme on load
+    document.body.className = this.theme;
+    await this.checkServerStatus();
+    await this.checkAuth();
+  },
+  watch: {
+    isAuthenticated() {
+      if (this.isAuthenticated) {
+        this.updatePageTitle(this.activePage);
+        this.$router.push({ name: this.activePage }); // Redirect after successful login
       }
     },
   }
 };
 </script>
+<style>
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+</style>
 
 <style scoped>
-.container {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  color: black;
+#papp {
+  color: #2c3e50;
+  text-align: center;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
-.loading-overlay {
+.top-bar {
+  background-color: var(--top-bar-bg);
+  color: var(--top-bar-text);
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.main-content {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.title-container {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.taskbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: var(--taskbar-bg);
+  color: var(--taskbar-text);
+}
+
+.taskbar button {
+  background-color: transparent;
+  color: var(--taskbar-text);
+  border: none;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.taskbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.taskbar button.active {
+  background-color: var(--active-bg);
+  color: white;
+  border-radius: 5px;
+}
+
+/* Theme variables */
+.light {
+  --top-bar-bg: #b85b14;
+  --top-bar-text: #fff;
+  --taskbar-bg: #35495e;
+  --taskbar-text: #fff;
+  --active-bg: #009879;
+}
+
+.dark {
+  --top-bar-bg: #1e1e1e;
+  --top-bar-text: #e0e0e0;
+  --taskbar-bg: #2d2d2d;
+  --taskbar-text: #cfcfcf;
+  --active-bg: #5a5a5a;
+}
+
+.theme-switch {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--top-bar-text);
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--top-bar-text);
+  margin-left: 10px;
+}
+
+.upload-loader {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  color: white;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .spinner {
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #3498db;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  border: 4px solid var(--top-bar-bg);
+  border-top: 4px solid #5aa3f0;
+  border-radius: 100%;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
@@ -383,122 +401,5 @@ export default {
   100% {
     transform: rotate(360deg);
   }
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
-}
-
-.section {
-  margin-bottom: 20px;
-}
-
-.text-input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: calc(50% - 10px);
-  margin-bottom: 5px;
-}
-
-.ml {
-  margin-left: 10px;
-}
-
-.textarea {
-  width: 100%;
-  height: 100px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
-.error-message {
-  color: red;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.delete-button {
-  background: none;
-  border: none;
-  color: red;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.file-input {
-  margin-bottom: 20px;
-}
-
-.db-box {
-  background: white;
-  padding: 10px;
-  border: 1px solid #ccc;
-  margin-top: 10px;
-  border-radius: 4px;
-}
-
-.sheet-box {
-  display: flex;
-  margin-top: 5px;
-}
-
-.add-button {
-  background: none;
-  border: none;
-  color: #007bff;
-  cursor: pointer;
-  margin-top: 5px;
-}
-
-.submit-button {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.response {
-  margin-top: 20px;
-  background: #e9ecef;
-  padding: 10px;
-  border-radius: 4px;
-}
-
-.tooltip {
-  margin-left: 6px;
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 280px;
-  background-color: #333;
-  color: white;
-  text-align: left;
-  border-radius: 6px;
-  padding: 8px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -140px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
 }
 </style>
