@@ -108,7 +108,7 @@
     </div>
     <div v-if="loading" class="loading-overlay">
         <div class="spinner"></div>
-        <span>Uploading and processing files...</span>
+        <span style="color: aliceblue;">Uploading and processing files...</span>
     </div>
 </template>
 
@@ -284,7 +284,7 @@ export default {
                 try {
                     this.loading = true;
                     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_excels_to_db`, formData, {
-                        headers: { "Content-Type": "multipart/form-data" }
+                        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
                     });
                     this.response = response.data;
                     this.loading = false;
@@ -323,7 +323,7 @@ export default {
 
                 try {
                     const geoResp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_to_gpkg`, geoForm, {
-                        headers: { "Content-Type": "multipart/form-data" }
+                        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
                     });
 
                     if (!this.response) this.response = {};
@@ -352,6 +352,7 @@ export default {
     border-radius: 8px;
     color: black;
     color-scheme: light dark;
+    overflow-y: auto;
 }
 
 .loading-overlay {

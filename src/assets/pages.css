@@ -55,7 +55,6 @@ html {
     /* Ensure no scroll at the global level */
     background-color: var(--background-color);
     color: var(--text-color);
-    overflow: hidden;
 }
 
 .content {
