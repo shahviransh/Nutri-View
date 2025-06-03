@@ -2265,6 +2265,19 @@ def convert_to_gpkg_service(uploaded_files):
 
     output_gpkg = os.path.join(Config.BASE_DIR, "GeoDB.gpkg")
     first_layer_created = False
+    
+    def delete_layer_if_exists(gpkg_path, layer_name):
+        # Check if layer exists
+        result = subprocess.run(
+            ["ogrinfo", gpkg_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if layer_name in result.stdout:
+            subprocess.run([
+                "ogrinfo", gpkg_path, "-sql", f"DROP TABLE \"{layer_name}\""
+            ], check=True)
 
     try:
         for base in base_names:
@@ -2272,6 +2285,7 @@ def convert_to_gpkg_service(uploaded_files):
             tif_path = os.path.join(Config.TEMPDIR, base + ".tif")
 
             if os.path.exists(shp_path):
+                delete_layer_if_exists(output_gpkg, base)
                 if not first_layer_created:
                     # Create new gpkg from first shapefile
                     subprocess.run(["ogr2ogr", "-f", "GPKG", output_gpkg, shp_path], check=True)
@@ -2285,6 +2299,7 @@ def convert_to_gpkg_service(uploaded_files):
                     ], check=True)
             elif os.path.exists(tif_path):
                 layer_name = base
+                delete_layer_if_exists(output_gpkg, layer_name)
                 if not first_layer_created:
                     # Create new gpkg from first raster
                     subprocess.run([
