@@ -26,12 +26,15 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from werkzeug.utils import safe_join
 import re
 import numexpr as ne
+import shutil
 
 alias_mapping = {}
 global_dbs_tables_columns = {}
 os.environ["PROJ_LIB"] = Config.PROJ_LIB
 os.environ["GDAL_DATA"] = Config.GDAL_DATA
 bmp_db_path_global = None
+if os.path.exists(Config.TEMPDIR):
+    shutil.rmtree(Config.TEMPDIR)
 os.makedirs(Config.TEMPDIR, exist_ok=True)
 
 
@@ -1701,6 +1704,40 @@ def fetch_geojson_colors(data):
     }
 
 
+def extract_gpkg_layers(file_path):
+    """
+    Extracts all vector and raster layers from a .gpkg file.
+    Returns a list of temporary file paths for .shp (vector) and .tif (raster).
+    """
+    temp_paths = []
+
+    # Handle vector layers
+    vector_ds = ogr.Open(file_path)
+    if vector_ds:
+        for i in range(vector_ds.GetLayerCount()):
+            layer = vector_ds.GetLayerByIndex(i)
+            layer_name = layer.GetName()
+            temp_shp_path = os.path.join(Config.TEMPDIR, f"{layer_name}.shp")
+
+            if not os.path.exists(temp_shp_path):
+                shp_driver = ogr.GetDriverByName("ESRI Shapefile")
+                if os.path.exists(temp_shp_path):
+                    shp_driver.DeleteDataSource(temp_shp_path)
+                out_ds = shp_driver.CreateDataSource(temp_shp_path)
+                out_ds.CopyLayer(layer, layer_name)
+                out_ds = None
+            temp_paths.append(temp_shp_path)
+
+    # Handle raster layers
+    raster_ds = gdal.Open(file_path)
+    if raster_ds:
+        temp_tif_path = os.path.join(Config.TEMPDIR, f"{os.path.basename(file_path)}.tif")
+        if not os.path.exists(temp_tif_path):
+            gdal.Translate(temp_tif_path, raster_ds)
+        temp_paths.append(temp_tif_path)
+
+    return temp_paths
+
 def process_geospatial_data(data):
     """
     Process a geospatial file (shapefile or raster) and return GeoJSON/Tiff Image Url, bounds, and center.
@@ -1717,264 +1754,270 @@ def process_geospatial_data(data):
     image_urls = []
     default_crs = None
 
-    for file_path in file_paths:
-        toolTipKey = f"{(os.path.basename(file_path),os.path.basename(file_path))}"
-        # Check if the file is a shapefile (.shp)
-        if file_path.endswith(".shp"):
-            # Open shapefile
-            driver = ogr.GetDriverByName("ESRI Shapefile")
-            dataset = driver.Open(file_path, 0)
-            if dataset is None:
-                continue
+    for path in file_paths:
+        file_path_list = [path]
 
-            layer = dataset.GetLayer()
+        if path.endswith(".gpkg"):
+            file_path_list = extract_gpkg_layers(path)
 
-            # Handle Spatial Reference System
-            source_srs = layer.GetSpatialRef()
-            if source_srs:
-                authority_name = source_srs.GetAuthorityName(None)
-                authority_code = source_srs.GetAuthorityCode(None)
+        for file_path in file_path_list:
+            toolTipKey = f"{(os.path.basename(file_path),os.path.basename(file_path))}"
+            # Check if the file is a shapefile (.shp)
+            if file_path.endswith(".shp"):
+                # Open shapefile
+                driver = ogr.GetDriverByName("ESRI Shapefile")
+                dataset = driver.Open(file_path, 0)
+                if dataset is None:
+                    continue
 
-                if authority_name and authority_code:
-                    default_crs = f"{authority_name}:{authority_code}"
+                layer = dataset.GetLayer()
+
+                # Handle Spatial Reference System
+                source_srs = layer.GetSpatialRef()
+                if source_srs:
+                    authority_name = source_srs.GetAuthorityName(None)
+                    authority_code = source_srs.GetAuthorityCode(None)
+
+                    if authority_name and authority_code:
+                        default_crs = f"{authority_name}:{authority_code}"
+                    else:
+                        default_crs = "EPSG:4326"
                 else:
-                    default_crs = "EPSG:4326"
-            else:
-                source_srs = osr.SpatialReference()
-                source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
-                default_crs = "EPSG:26917"
+                    source_srs = osr.SpatialReference()
+                    source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
+                    default_crs = "EPSG:26917"
 
-            target_srs = osr.SpatialReference()
-            target_srs.ImportFromEPSG(4326)  # WGS84 (longitude/latitude)
+                target_srs = osr.SpatialReference()
+                target_srs.ImportFromEPSG(4326)  # WGS84 (longitude/latitude)
 
-            # Ensure the axis order is longitude-latitude
-            if target_srs.SetAxisMappingStrategy:
-                target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+                # Ensure the axis order is longitude-latitude
+                if target_srs.SetAxisMappingStrategy:
+                    target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-            coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
+                coord_transform = osr.CoordinateTransformation(source_srs, target_srs)
 
-            # Create a new memory layer for the reprojected data
-            memory_driver = ogr.GetDriverByName("Memory")
-            memory_ds = memory_driver.CreateDataSource("reprojected")
-            reprojected_layer = memory_ds.CreateLayer(
-                "reprojected_layer", srs=target_srs, geom_type=layer.GetGeomType()
-            )
+                # Create a new memory layer for the reprojected data
+                memory_driver = ogr.GetDriverByName("Memory")
+                memory_ds = memory_driver.CreateDataSource("reprojected")
+                reprojected_layer = memory_ds.CreateLayer(
+                    "reprojected_layer", srs=target_srs, geom_type=layer.GetGeomType()
+                )
 
-            # Copy fields from the original layer
-            layer_defn = layer.GetLayerDefn()
-            for i in range(layer_defn.GetFieldCount()):
-                reprojected_layer.CreateField(layer_defn.GetFieldDefn(i))
+                # Copy fields from the original layer
+                layer_defn = layer.GetLayerDefn()
+                for i in range(layer_defn.GetFieldCount()):
+                    reprojected_layer.CreateField(layer_defn.GetFieldDefn(i))
 
-            # Collect properties dynamically
-            properties = [
-                layer_defn.GetFieldDefn(i).GetName()
-                for i in range(layer_defn.GetFieldCount())
-            ]
+                # Collect properties dynamically
+                properties = [
+                    layer_defn.GetFieldDefn(i).GetName()
+                    for i in range(layer_defn.GetFieldCount())
+                ]
 
-            # Reproject features in batches if needed
-            feature_buffer = []
-            BATCH_SIZE = 1000
-            for feature in layer:
-                geom = feature.GetGeometryRef()
-                if geom:
-                    geom.Transform(coord_transform)  # Transform geometry to WGS84
+                # Reproject features in batches if needed
+                feature_buffer = []
+                BATCH_SIZE = 1000
+                for feature in layer:
+                    geom = feature.GetGeometryRef()
+                    if geom:
+                        geom.Transform(coord_transform)  # Transform geometry to WGS84
 
-                # Create a new feature and store in buffer
-                reprojected_feature = ogr.Feature(reprojected_layer.GetLayerDefn())
-                reprojected_feature.SetGeometry(geom)
-                for i in range(feature.GetFieldCount()):
-                    reprojected_feature.SetField(i, feature.GetField(i))
+                    # Create a new feature and store in buffer
+                    reprojected_feature = ogr.Feature(reprojected_layer.GetLayerDefn())
+                    reprojected_feature.SetGeometry(geom)
+                    for i in range(feature.GetFieldCount()):
+                        reprojected_feature.SetField(i, feature.GetField(i))
 
-                feature_buffer.append(reprojected_feature)
+                    feature_buffer.append(reprojected_feature)
 
-                # Bulk insert when buffer reaches batch size
-                if len(feature_buffer) >= BATCH_SIZE:
+                    # Bulk insert when buffer reaches batch size
+                    if len(feature_buffer) >= BATCH_SIZE:
+                        reprojected_layer.StartTransaction()
+                        for f in feature_buffer:
+                            reprojected_layer.CreateFeature(f)
+                        reprojected_layer.CommitTransaction()
+                        feature_buffer.clear()
+
+                # Insert remaining features
+                if feature_buffer:
                     reprojected_layer.StartTransaction()
                     for f in feature_buffer:
                         reprojected_layer.CreateFeature(f)
                     reprojected_layer.CommitTransaction()
-                    feature_buffer.clear()
 
-            # Insert remaining features
-            if feature_buffer:
-                reprojected_layer.StartTransaction()
-                for f in feature_buffer:
-                    reprojected_layer.CreateFeature(f)
-                reprojected_layer.CommitTransaction()
+                # Calculate bounds in WGS84
+                extent = reprojected_layer.GetExtent()  # (minX, maxX, minY, maxY)
 
-            # Calculate bounds in WGS84
-            extent = reprojected_layer.GetExtent()  # (minX, maxX, minY, maxY)
+                x_min = extent[0]
+                y_min = extent[2]
+                x_max = extent[1]
+                y_max = extent[3]
 
-            x_min = extent[0]
-            y_min = extent[2]
-            x_max = extent[1]
-            y_max = extent[3]
+                # Swap longitude & latitude order for Leaflet (Leaflet expects [[minY, minX], [maxY, maxX]])
+                bounds = [
+                    [y_min, x_min],
+                    [y_max, x_max],
+                ]
 
-            # Swap longitude & latitude order for Leaflet (Leaflet expects [[minY, minX], [maxY, maxX]])
-            bounds = [
-                [y_min, x_min],
-                [y_max, x_max],
-            ]
-
-            shp_metadata = {
-                "feature_count": reprojected_layer.GetFeatureCount(),
-                "extent": (
-                    round(x_min, 6),
-                    round(x_max, 6),
-                    round(y_min, 6),
-                    round(y_max, 6),
-                ),
-                "field_names": properties,
-            }
-            geojson_metadata = {}
-            geojson_path = os.path.join(
-                Config.TEMPDIR, os.path.basename(file_path) + "_output.geojson"
-            )
-
-            # Check if a GeoJSON file already exists and extract metadata
-            if os.path.exists(geojson_path):
-                geojson_metadata = get_geojson_metadata(geojson_path)
-
-            if shp_metadata != geojson_metadata:
-                # Convert reprojected layer to GeoJSON
-                geojson_driver = ogr.GetDriverByName("GeoJSON")
-
-                geojson_dataset = geojson_driver.CreateDataSource(geojson_path)
-                geojson_dataset.CopyLayer(
-                    reprojected_layer,
-                    "layer",
-                    ["RFC7946=YES", "WRITE_BBOX=YES"],
+                shp_metadata = {
+                    "feature_count": reprojected_layer.GetFeatureCount(),
+                    "extent": (
+                        round(x_min, 6),
+                        round(x_max, 6),
+                        round(y_min, 6),
+                        round(y_max, 6),
+                    ),
+                    "field_names": properties,
+                }
+                geojson_metadata = {}
+                geojson_path = os.path.join(
+                    Config.TEMPDIR, os.path.basename(file_path) + "_output.geojson"
                 )
-                geojson_dataset = None
 
-            with open(geojson_path, "r") as file:
-                geojson_data = json.load(file)
+                # Check if a GeoJSON file already exists and extract metadata
+                if os.path.exists(geojson_path):
+                    geojson_metadata = get_geojson_metadata(geojson_path)
 
-            # Update the combined bounds
-            (overlap, combined_bounds) = bounds_overlap_or_similar(
-                combined_bounds, bounds
-            )
+                if shp_metadata != geojson_metadata:
+                    # Convert reprojected layer to GeoJSON
+                    geojson_driver = ogr.GetDriverByName("GeoJSON")
 
-            # Add GeoJSON data/properties to the combined GeoJSON/properties only if the combined bounds are not far apart
-            if overlap:
-                if combined_geojson:
+                    geojson_dataset = geojson_driver.CreateDataSource(geojson_path)
+                    geojson_dataset.CopyLayer(
+                        reprojected_layer,
+                        "layer",
+                        ["RFC7946=YES", "WRITE_BBOX=YES"],
+                    )
+                    geojson_dataset = None
 
-                    def append_features(geojson_data):
-                        """Efficiently append features to GeoJSON."""
-                        for feature in geojson_data["features"]:
-                            yield feature
+                with open(geojson_path, "r") as file:
+                    geojson_data = json.load(file)
 
-                    # Append features to the combined GeoJSON using generator
-                    for feature in append_features(geojson_data):
-                        combined_geojson["features"].append(feature)
-                else:
-                    combined_geojson = geojson_data
-                if combined_properties:
-                    combined_properties.extend(properties)
-                else:
-                    combined_properties = properties
+                # Update the combined bounds
+                (overlap, combined_bounds) = bounds_overlap_or_similar(
+                    combined_bounds, bounds
+                )
 
-            # Save properties for each shapefile path
-            tool_tip[toolTipKey] = properties
-        # Handle GeoTIFF files
-        elif file_path.endswith(".tif") or file_path.endswith(".tiff"):
-            raster_dataset = gdal.Open(file_path)
-            if not raster_dataset:
-                continue
+                # Add GeoJSON data/properties to the combined GeoJSON/properties only if the combined bounds are not far apart
+                if overlap:
+                    if combined_geojson:
 
-            # Ensure raster is in EPSG:4326 (WGS84)
-            source_srs = osr.SpatialReference()
-            source_srs.ImportFromWkt(raster_dataset.GetProjection())
-            if source_srs:
-                authority_name = source_srs.GetAuthorityName(None)
-                authority_code = source_srs.GetAuthorityCode(None)
+                        def append_features(geojson_data):
+                            """Efficiently append features to GeoJSON."""
+                            for feature in geojson_data["features"]:
+                                yield feature
 
-                if authority_name and authority_code:
-                    default_crs = f"{authority_name}:{authority_code}"
-                else:
-                    default_crs = "EPSG:4326"
-            else:
+                        # Append features to the combined GeoJSON using generator
+                        for feature in append_features(geojson_data):
+                            combined_geojson["features"].append(feature)
+                    else:
+                        combined_geojson = geojson_data
+                    if combined_properties:
+                        combined_properties.extend(properties)
+                    else:
+                        combined_properties = properties
+
+                # Save properties for each shapefile path
+                tool_tip[toolTipKey] = properties
+            # Handle GeoTIFF files
+            elif file_path.endswith(".tif") or file_path.endswith(".tiff"):
+                raster_dataset = gdal.Open(file_path)
+                if not raster_dataset:
+                    continue
+
+                # Ensure raster is in EPSG:4326 (WGS84)
                 source_srs = osr.SpatialReference()
-                source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
-                default_crs = "EPSG:26917"
-            target_srs = osr.SpatialReference()
-            target_srs.ImportFromEPSG(4326)
+                source_srs.ImportFromWkt(raster_dataset.GetProjection())
+                if source_srs:
+                    authority_name = source_srs.GetAuthorityName(None)
+                    authority_code = source_srs.GetAuthorityCode(None)
 
-            # Ensure the axis order is longitude-latitude
-            if target_srs.SetAxisMappingStrategy:
-                target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+                    if authority_name and authority_code:
+                        default_crs = f"{authority_name}:{authority_code}"
+                    else:
+                        default_crs = "EPSG:4326"
+                else:
+                    source_srs = osr.SpatialReference()
+                    source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
+                    default_crs = "EPSG:26917"
+                target_srs = osr.SpatialReference()
+                target_srs.ImportFromEPSG(4326)
 
-            if not source_srs.IsSame(target_srs):
-                # Reproject the raster to EPSG:4326
-                reprojected_file_path = os.path.join(
-                    Config.TEMPDIR, os.path.basename(file_path) + "_reprojected.tif"
+                # Ensure the axis order is longitude-latitude
+                if target_srs.SetAxisMappingStrategy:
+                    target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+                if not source_srs.IsSame(target_srs):
+                    # Reproject the raster to EPSG:4326
+                    reprojected_file_path = os.path.join(
+                        Config.TEMPDIR, os.path.basename(file_path) + "_reprojected.tif"
+                    )
+                    (
+                        gdal.Warp(reprojected_file_path, raster_dataset, dstSRS="EPSG:4326")
+                        if not os.path.exists(reprojected_file_path)
+                        else None
+                    )
+                    raster_dataset = gdal.Open(reprojected_file_path)
+                else:
+                    reprojected_file_path = file_path
+
+                # Get raster metadata
+                geotransform = raster_dataset.GetGeoTransform()
+
+                x_min = geotransform[0]
+                y_max = geotransform[3]
+                x_max = x_min + geotransform[1] * raster_dataset.RasterXSize
+                y_min = y_max + geotransform[5] * raster_dataset.RasterYSize
+
+                # Calculate bounds for Leaflet
+                bounds = [
+                    [y_min, x_min],
+                    [y_max, x_max],
+                ]
+
+                output_image_path = os.path.join(
+                    Config.TEMPDIR, os.path.basename(file_path) + "_rendered.png"
                 )
-                (
-                    gdal.Warp(reprojected_file_path, raster_dataset, dstSRS="EPSG:4326")
-                    if not os.path.exists(reprojected_file_path)
-                    else None
+
+                # Read raster data and render to an image
+                band = raster_dataset.GetRasterBand(1)  # Use the first raster band
+                # Get colormap based on metadata
+                cmap = get_metadata_colormap(band)
+
+                if not os.path.exists(output_image_path):
+                    raster_data, raster_normalized, _, _ = get_raster_normalized(band)
+
+                    rgba_colored = cmap(raster_normalized)  # Apply colormap (RGBA values)
+
+                    # Convert to uint8 format (0-255)
+                    rgba_image = (rgba_colored[:, :, :4] * 255).astype(np.uint8)
+
+                    # Set the alpha channel for transparency (No-data = Transparent)
+                    rgba_image[..., 3] = np.where(raster_data.mask, 0, 255)
+
+                    # Convert the RGBA array to an image
+                    color_ramp = Image.fromarray(rgba_image, mode="RGBA")
+
+                    # Save the rendered image with transparency
+                    color_ramp.save(output_image_path, "PNG", quality=95)
+
+                # Get color levels for the raster band
+                raster_color_levels = get_raster_color_levels(band, cmap)
+
+                raster_dataset = None
+
+                # Update the combined bounds
+                (overlap, combined_bounds) = bounds_overlap_or_similar(
+                    combined_bounds, bounds
                 )
-                raster_dataset = gdal.Open(reprojected_file_path)
+
+                # Save the image URL for each GeoTIFF path only if the combined bounds are not far apart
+                if overlap:
+                    image_urls.append(f"/api/geotiff/{os.path.basename(output_image_path)}")
             else:
-                reprojected_file_path = file_path
-
-            # Get raster metadata
-            geotransform = raster_dataset.GetGeoTransform()
-
-            x_min = geotransform[0]
-            y_max = geotransform[3]
-            x_max = x_min + geotransform[1] * raster_dataset.RasterXSize
-            y_min = y_max + geotransform[5] * raster_dataset.RasterYSize
-
-            # Calculate bounds for Leaflet
-            bounds = [
-                [y_min, x_min],
-                [y_max, x_max],
-            ]
-
-            output_image_path = os.path.join(
-                Config.TEMPDIR, os.path.basename(file_path) + "_rendered.png"
-            )
-
-            # Read raster data and render to an image
-            band = raster_dataset.GetRasterBand(1)  # Use the first raster band
-            # Get colormap based on metadata
-            cmap = get_metadata_colormap(band)
-
-            if not os.path.exists(output_image_path):
-                raster_data, raster_normalized, _, _ = get_raster_normalized(band)
-
-                rgba_colored = cmap(raster_normalized)  # Apply colormap (RGBA values)
-
-                # Convert to uint8 format (0-255)
-                rgba_image = (rgba_colored[:, :, :4] * 255).astype(np.uint8)
-
-                # Set the alpha channel for transparency (No-data = Transparent)
-                rgba_image[..., 3] = np.where(raster_data.mask, 0, 255)
-
-                # Convert the RGBA array to an image
-                color_ramp = Image.fromarray(rgba_image, mode="RGBA")
-
-                # Save the rendered image with transparency
-                color_ramp.save(output_image_path, "PNG", quality=95)
-
-            # Get color levels for the raster band
-            raster_color_levels = get_raster_color_levels(band, cmap)
-
-            raster_dataset = None
-
-            # Update the combined bounds
-            (overlap, combined_bounds) = bounds_overlap_or_similar(
-                combined_bounds, bounds
-            )
-
-            # Save the image URL for each GeoTIFF path only if the combined bounds are not far apart
-            if overlap:
-                image_urls.append(f"/api/geotiff/{os.path.basename(output_image_path)}")
-        else:
-            return {
-                "error": "Unsupported file type. Only .shp and .tif/.tiff are supported."
-            }
+                return {
+                    "error": "Unsupported file type. Only .shp and .tif/.tiff are supported."
+                }
 
     # Define a function to get a sorting key based on geometry type
     def get_geometry_order(feature):
