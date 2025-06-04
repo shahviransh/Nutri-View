@@ -5,8 +5,13 @@
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th v-for="column in selectedColumnsFilter" :key="column">{{
-                            column }}</th>
+                        <th v-for="column in selectedColumnsFilter" :key="column">{{ column }}</th>
+                    </tr>
+                    <tr>
+                        <th v-for="column in selectedColumnsFilter" :key="column">
+                            <input type="text" v-model="columnFilters[column]" @input="onFilterChange"
+                                placeholder="Filter" class="column-filter" />
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,35 +58,50 @@ export default {
         return {
             visibleData: [],
             canLoadMore: true,
+            columnFilters: {},
         };
     },
     computed: {
         selectedColumnsFilter() {
             return this.properties ? this.selectedColumns.filter(c => !this.properties.includes(c)) : this.selectedColumns
         },
+        filteredData() {
+            return this.data.filter((row) => {
+                return this.selectedColumnsFilter.every((col) => {
+                    const filter = this.columnFilters[col];
+                    return !filter || String(row[col]).toLowerCase().includes(filter.toLowerCase());
+                });
+            });
+        },
     },
     methods: {
         // Load initial rows when the data is loaded
         loadInitialRows() {
-            this.visibleData = this.data.slice(0, this.rowLimit);
-            this.canLoadMore = this.data.length > this.rowLimit;
+            this.visibleData = this.filteredData.slice(0, this.rowLimit);
+            this.canLoadMore = this.filteredData.length > this.rowLimit;
         },
         // Load more rows when the load more button is clicked
         loadMoreRows() {
             const nextRowLimit = this.visibleData.length + this.rowLimit;
-            const nextRows = this.data.slice(this.visibleData.length, nextRowLimit);
-            // Append the next rows to the visible data
+            // Ensure we don't exceed the total number of filtered rows
+            const nextRows = this.filteredData.slice(this.visibleData.length, nextRowLimit);
             this.visibleData = [...this.visibleData, ...nextRows];
-            // Check if we can load more rows
-            if (this.visibleData.length >= this.data.length) {
+            if (this.visibleData.length >= this.filteredData.length) {
                 this.canLoadMore = false;
             }
+        },
+        onFilterChange() {
+            this.loadInitialRows();
         },
     },
     watch: {
         data: {
             immediate: true,
             handler() {
+                // Initialize filters
+                this.selectedColumnsFilter.forEach((col) => {
+                    this.columnFilters[col] = '';
+                });
                 this.loadInitialRows();
             }
         }
@@ -89,3 +109,11 @@ export default {
 };
 </script>
 <style src="../assets/pages.css" />
+
+<style scoped>
+.column-filter {
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+}
+</style>
