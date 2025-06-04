@@ -258,7 +258,7 @@ export default {
             const otherDbs = this.mappingForm.filter(db => db.name !== "GeoDB.gpkg");
 
             // Submit standard Excel-to-DB conversion
-            if (otherDbs.length > 0) {
+            if (otherDbs.length > 0 && otherDbs.some(db => db.files.length > 0)) {
                 const formData = new FormData();
                 this.files.forEach(file => formData.append("files", file));
 
