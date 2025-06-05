@@ -43,6 +43,31 @@
             <button @click="addDatabaseEntry" class="add-button">+ Add Database</button>
         </div>
 
+        <div class="section">Add commentMore actions
+            <label>
+                Table Conflict Behavior:
+                <span class="tooltip">❓
+                    <span class="tooltiptext">
+                        Choose what to do if a table already exists in the database:
+                        <ul>
+                            <li><strong>Replace</strong> Overwrites existing table (default)<br />
+                                <em>Use this if you want to remove previously uploaded data (e.g., from earlier Excel
+                                    uploads saved in .db3).</em>
+                            </li>
+                            <li><strong>Append</strong> Appends data to the existing table<br />
+                                <em>Recommended if you've uploaded Excel files before and are adding more data to the
+                                    same table.</em>
+                            </li>
+                        </ul>
+                    </span>
+                </span>
+            </label>
+            <div>
+                <label><input type="radio" value="replace" v-model="conflictAction" /> Replace</label>
+                <label class="ml"><input type="radio" value="append" v-model="conflictAction" /> Append</label>
+            </div>
+        </div>
+
         <!-- <div class="section">
         <label>
           Header Mapping:
@@ -147,6 +172,7 @@ export default {
                 merged_columns: 1,
             }],
             response: null,
+            conflictAction: "replace"
         };
     },
     computed: {
@@ -280,6 +306,7 @@ export default {
                 formData.append("mapping", JSON.stringify(this.buildMappingFromList(otherDbs)));
                 formData.append("header_mapping", JSON.stringify(headerMappingJson));
                 formData.append("merged_mapping", JSON.stringify(mergedMappingJson));
+                formData.append("conflict_action", this.conflictAction);
 
                 try {
                     this.loading = true;

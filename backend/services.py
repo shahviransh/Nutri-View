@@ -1756,7 +1756,7 @@ def process_geospatial_data(data):
 
     for path in file_paths:
         file_path_list = [path]
-
+        # TODO: Handle GeoPackage (.gpkg) files
         if path.endswith(".gpkg"):
             file_path_list = extract_gpkg_layers(path)
 
@@ -2153,6 +2153,7 @@ def convert_excels_to_db_service(excel_files, data):
     mapping = data.get("mapping")
     header_mapping = data.get("header_mapping")
     merged_mapping = data.get("merged_mapping")
+    conflict_action = data.get("conflict_action", "replace")
     saved_files = {}
     results = {}
     used_sheets = {}
@@ -2278,7 +2279,7 @@ def convert_excels_to_db_service(excel_files, data):
             if "BMP" in db_name and not df_final.empty:
                 current_year = datetime.now().year
                 df_final["Year"] = f"{current_year - 1}-{current_year}"
-                df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists="append", index=False)
+                df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
 
             conn.close()
             results[db_name] = db_path
