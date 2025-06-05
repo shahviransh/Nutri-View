@@ -48,11 +48,11 @@
                 Table Conflict Behavior:
                 <span class="tooltip">❓
                     <span class="tooltiptext">
-                        Choose what to do if a table already exists in the database:
+                        Choose what to do if a table already exists in the BMP database:
                         <ul>
                             <li><strong>Replace</strong> Overwrites existing table (default)<br />
                                 <em>Use this if you want to remove previously uploaded data (e.g., from earlier Excel
-                                    uploads saved in .db3).</em>
+                                    uploads saved in BMP.db3).</em>
                             </li>
                             <li><strong>Append</strong> Appends data to the existing table<br />
                                 <em>Recommended if you've uploaded Excel files before and are adding more data to the
