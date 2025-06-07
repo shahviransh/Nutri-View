@@ -2157,6 +2157,8 @@ def convert_excels_to_db_service(excel_files, data):
     saved_files = {}
     results = {}
     used_sheets = {}
+    help_db_path = os.path.join(Config.BASE_DIR, "Help.db3")
+    help_entries = []
 
     try:
         mapping = json.loads(mapping)
@@ -2237,6 +2239,13 @@ def convert_excels_to_db_service(excel_files, data):
                             # Ensure merge keys are the same dtyp
                             df["Organization"] = df["Organization"].astype(str)
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
+                            # TODO: Test Help database
+                            row = df.iloc[0]
+                            help_entries.append({
+                                "Help_ID": f"{str(row['Organization']).strip()}__{sheet_name.strip()}",
+                                "Attributes": ", ".join(df.columns)
+                            })
+                            df["Help_ID"] = f"{str(row['Organization']).strip()}__{sheet_name.strip()}"
                             if df_final.empty:
                                 df_final = df
                             else:                         
@@ -2280,6 +2289,13 @@ def convert_excels_to_db_service(excel_files, data):
                 current_year = datetime.now().year
                 df_final["Year"] = f"{current_year - 1}-{current_year}"
                 df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
+                
+            # Save help metadata to Help.db3
+            if help_entries:
+                help_df = pd.DataFrame(help_entries)
+                help_conn = sqlite3.connect(help_db_path)
+                help_df.to_sql("HelpMetadata", help_conn, if_exists="replace", index=False)
+                help_conn.close()
 
             conn.close()
             results[db_name] = db_path
