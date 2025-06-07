@@ -2241,11 +2241,12 @@ def convert_excels_to_db_service(excel_files, data):
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
                             # TODO: Test Help database
                             row = df.iloc[0]
+                            help_id = f"{str(row['Organization']).strip()}_{sheet_name.strip()}"
                             help_entries.append({
-                                "Help_ID": f"{str(row['Organization']).strip()}__{sheet_name.strip()}",
+                                "Help_ID": help_id,
                                 "Attributes": ", ".join(df.columns)
                             })
-                            df["Help_ID"] = f"{str(row['Organization']).strip()}__{sheet_name.strip()}"
+                            df["Help_ID"] = help_id
                             if df_final.empty:
                                 df_final = df
                             else:                         
