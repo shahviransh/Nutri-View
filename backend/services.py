@@ -2244,8 +2244,7 @@ def convert_excels_to_db_service(excel_files, data):
                             help_id = f"{str(row['Organization']).strip()}_{sheet_name.strip()}"
                             help_entries.append({
                                 "Help_ID": help_id,
-                                "Attributes": "? ".join(df.columns)
-                                "Attributes_Seperator": "?",
+                                "Attribute": df.columns.tolist(),
                             })
                             df["Help_ID"] = help_id
                             if df_final.empty:
