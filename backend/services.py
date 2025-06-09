@@ -2282,7 +2282,7 @@ def convert_excels_to_db_service(excel_files, data):
                                 # Replace empty strings with NaN and drop empty rows
                                 df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                                 df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
-                                df_final.dropna(thresh=int(df_final.shape[1] * 0.1), inplace=True)
+                                df_final.dropna(thresh=int(df_final.shape[1] * 0.1), inplace=True) # Drop rows with less than 10% non-NA values
                                 df_final.fillna("NaN", inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
@@ -2299,6 +2299,7 @@ def convert_excels_to_db_service(excel_files, data):
             if "BMP" in db_name and not df_final.empty:
                 current_year = datetime.now().year
                 df_final["Year"] = f"{current_year - 1}-{current_year}"
+                # Reorder columns to ensure consistent structure
                 cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
                 df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
