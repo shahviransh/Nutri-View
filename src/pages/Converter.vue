@@ -52,7 +52,7 @@
                         <ul>
                             <li><strong>Replace</strong> Overwrites existing table (default)<br />
                                 <em>Use this if you want to remove previously uploaded data (e.g., from earlier Excel
-                                    uploads saved in BMP.db3).</em>
+                                    uploads saved in BMPs.db3).</em>
                             </li>
                             <li><strong>Append</strong> Appends data to the existing table<br />
                                 <em>Recommended if you've uploaded Excel files before and are adding more data to the
@@ -151,7 +151,7 @@ export default {
                     files: [{ filename: "", sheets: "1. EOF P Reductions,2. Performance Measures" }]
                 },
                 {
-                    name: "BMP.db3",
+                    name: "BMPs.db3",
                     files: [{ filename: "", sheets: "" }]
                 },
                 {
@@ -228,9 +228,9 @@ export default {
                 const name = file.name.toLowerCase();
                 // Check if the file name contains specific keywords to determine the database
                 if (name.includes("performance measures")) {
-                    // Assign to PMs.db3 or BMP.db3
+                    // Assign to PMs.db3 or BMPs.db3
                     this.mappingForm.forEach(db => {
-                        if (db.name === "PMs.db3" || db.name === "BMP.db3") {
+                        if (db.name === "PMs.db3" || db.name === "BMPs.db3") {
                             db.files.push({
                                 filename: file.name,
                                 sheets: db.name === "PMs.db3" ? "1. EOF P Reductions,2. Performance Measures" : ""
