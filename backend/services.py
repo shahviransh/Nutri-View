@@ -167,7 +167,7 @@ def fetch_data_service(data):
         ID = id_column
 
         if spatial_scale == "field":
-            # Connect to BMP.db3 to fetch subarea information
+            # Connect to BMPs.db3 to fetch subarea information
             bmp_db_path = safe_join(Config.PATHFILE, bmp_db_path_global)
             conn = sqlite3.connect(bmp_db_path)
 
@@ -1191,6 +1191,8 @@ def get_columns_and_time_range(db_path, table_name):
                     start_date = df[date_col].min().strftime("%Y-%m-%d")
                     end_date = df[date_col].max().strftime("%Y-%m-%d")
                 elif date_col in ["Month", "Year"]:
+                    if df[date_col].dtype == "object":
+                        continue
                     start_date = int(df[date_col].min())
                     end_date = int(df[date_col].max())
                 date_type = dtype
@@ -2303,7 +2305,7 @@ def convert_excels_to_db_service(excel_files, data):
                 cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
                 df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
-                df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
+                df_final.to_sql(f"{os.path.splitext(db_name)[0]}s", conn, if_exists=conflict_action, index=False)
                 
             # Save help metadata to Help.db3
             if help_entries:
