@@ -2240,7 +2240,6 @@ def convert_excels_to_db_service(excel_files, data):
                             # Ensure merge keys are the same dtyp
                             df["Organization"] = df["Organization"].astype(str)
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
-                            df.dropna(thresh=int(df.shape[1] * 0.9), inplace=True)  # Drop rows with more than 90% NaN values
                             valid_organizations = list(set(
                                 df['Organization'].dropna()
                             ))
@@ -2283,13 +2282,13 @@ def convert_excels_to_db_service(excel_files, data):
                                 # Replace empty strings with NaN and drop empty rows
                                 df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                                 df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
-                                df_final.dropna(thresh=int(df_final.shape[1] * 0.9), inplace=True)
+                                df_final.dropna(thresh=int(df_final.shape[1] * 0.1), inplace=True)
                                 df_final.fillna("NaN", inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                         df.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
-                        df.dropna(thresh=int(df.shape[1] * 0.9), inplace=True)
+                        df.dropna(thresh=int(df.shape[1] * 0.1), inplace=True)
                         df.fillna("NaN", inplace=True)
                         df.to_sql(table_name, conn, if_exists="replace", index=False)
 
