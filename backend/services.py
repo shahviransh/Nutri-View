@@ -2299,6 +2299,9 @@ def convert_excels_to_db_service(excel_files, data):
             if "BMP" in db_name and not df_final.empty:
                 current_year = datetime.now().year
                 df_final["Year"] = f"{current_year - 1}-{current_year}"
+                cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
+                cols = [c for c in cols if c in df_final.columns]
+                df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
                 df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
                 
             # Save help metadata to Help.db3
