@@ -2159,6 +2159,7 @@ def convert_excels_to_db_service(excel_files, data):
     used_sheets = {}
     help_db_path = os.path.join(Config.BASE_DIR, "Help.db3")
     help_entries = []
+    existing_help_ids = set()
 
     try:
         mapping = json.loads(mapping)
@@ -2206,7 +2207,7 @@ def convert_excels_to_db_service(excel_files, data):
                     # Determine correct header row
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
 
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1, keep_default_na=False, na_values=[""])
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1)
                     cols = list(df.columns)
 
                     # Remove trailing "Unnamed" columns at the end
@@ -2239,14 +2240,23 @@ def convert_excels_to_db_service(excel_files, data):
                             # Ensure merge keys are the same dtyp
                             df["Organization"] = df["Organization"].astype(str)
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
-                            valid_organizations = set(
+                            df.dropna(thresh=int(df.shape[1] * 0.9), inplace=True)  # Drop rows with more than 90% NaN values
+                            valid_organizations = list(set(
                                 df['Organization'].dropna()
-                            )
-                            help_id = f"{str(valid_organizations[0]).strip()}_{sheet_name.strip()}"
-                            help_entries.append({
-                                "Help_ID": help_id,
-                                "Attribute": json.dumps(df.columns.tolist()),
-                            })
+                            ))
+                            valid_organizations = [
+                                org for org in valid_organizations if org.lower() != "nan" and org.strip() != ""
+                            ]                            
+                            if valid_organizations:
+                                help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
+                            else:
+                                help_id = f"Unknown_{sheet_name.strip()}"
+                            if help_id not in existing_help_ids:
+                                help_entries.append({
+                                    "Help_ID": help_id,
+                                    "Attribute": json.dumps(df.columns.tolist()),
+                                })
+                                existing_help_ids.add(help_id)
                             df["Help_ID"] = help_id
                             if df_final.empty:
                                 df_final = df
@@ -2273,13 +2283,13 @@ def convert_excels_to_db_service(excel_files, data):
                                 # Replace empty strings with NaN and drop empty rows
                                 df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                                 df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
-                                df_final.dropna(how='all', inplace=True)
+                                df_final.dropna(thresh=int(df_final.shape[1] * 0.9), inplace=True)
                                 df_final.fillna("NaN", inplace=True)
                     else:
                         table_name = f"{os.path.splitext(excel_filename)[0]}_{sheet_name}".strip().replace(" ", "_")
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                         df.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
-                        df.dropna(how='all', inplace=True)
+                        df.dropna(thresh=int(df.shape[1] * 0.9), inplace=True)
                         df.fillna("NaN", inplace=True)
                         df.to_sql(table_name, conn, if_exists="replace", index=False)
 
