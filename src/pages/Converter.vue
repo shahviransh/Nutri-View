@@ -43,7 +43,7 @@
             <button @click="addDatabaseEntry" class="add-button">+ Add Database</button>
         </div>
 
-        <div class="section">Add commentMore actions
+        <div class="section">
             <label>
                 Table Conflict Behavior:
                 <span class="tooltip">❓

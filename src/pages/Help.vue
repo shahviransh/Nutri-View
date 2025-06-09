@@ -1,6 +1,6 @@
 <template>
     <div :class="[theme, 'help-container']">
-        <h1>IMWEBs Viewer Help Page</h1>
+        <h1>CWA Viewer Help Page</h1>
 
         <section>
             <h2>Overview</h2>

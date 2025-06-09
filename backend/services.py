@@ -2239,12 +2239,13 @@ def convert_excels_to_db_service(excel_files, data):
                             # Ensure merge keys are the same dtyp
                             df["Organization"] = df["Organization"].astype(str)
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
-                            # TODO: Test Help database
-                            row = df.iloc[0]
-                            help_id = f"{str(row['Organization']).strip()}_{sheet_name.strip()}"
+                            valid_organizations = set(
+                                df['Organization'].dropna()
+                            )
+                            help_id = f"{str(valid_organizations[0]).strip()}_{sheet_name.strip()}"
                             help_entries.append({
                                 "Help_ID": help_id,
-                                "Attribute": df.columns.tolist(),
+                                "Attribute": json.dumps(df.columns.tolist()),
                             })
                             df["Help_ID"] = help_id
                             if df_final.empty:
