@@ -221,7 +221,7 @@ export default {
         },
     },
     computed: {
-        ...mapState(["selectedDbsTables", "selectedGeoFolders", "mathFormula", "selectedMonth", "columns", "idColumn", "selectedSeason", "selectedColumns", "allSelectedColumns", "selectedIds", "multiGraphType", "graphType", "currentZoomStart", "currentZoomEnd", "dateRange", "selectedInterval", "selectedStatistics", "selectedMethod", "exportColumns", "exportIds", "exportDate", "exportInterval", "dateType", "exportPath", "exportFilename", "exportFormat", "exportOptions", "theme"]),
+        ...mapState(["selectedDbsTables", "selectedGeoFolders", "layerNames", "mathFormula", "selectedMonth", "columns", "idColumn", "selectedSeason", "selectedColumns", "allSelectedColumns", "selectedIds", "multiGraphType", "graphType", "currentZoomStart", "currentZoomEnd", "dateRange", "selectedInterval", "selectedStatistics", "selectedMethod", "exportColumns", "exportIds", "exportDate", "exportInterval", "dateType", "exportPath", "exportFilename", "exportFormat", "exportOptions", "theme"]),
         polygonCol: {
             get() {
                 this.polygonColor = this.theme === 'light' ? "#3388ff" : "#ff9800";
@@ -441,6 +441,7 @@ export default {
                 const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/geospatial`, {
                     params: {
                         file_paths: JSON.stringify(this.selectedGeoFolders),
+                        layer_names: JSON.stringify(this.layerNames),
                     },
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
