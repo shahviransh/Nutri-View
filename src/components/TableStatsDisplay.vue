@@ -3,7 +3,6 @@
         <!-- Table Container with Scrollable Body -->
         <div class="table-container">
             <table class="styled-table">
-                <!-- TODO: Handle dynamic columns and filters -->
                 <thead>
                     <tr>
                         <th v-for="column in selectedColumnsFilter" :key="column">{{ column }}</th>
