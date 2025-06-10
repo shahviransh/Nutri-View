@@ -44,7 +44,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(['fetchFolderTree', 'fetchTables', 'removeSelectedGeoFolder', 'updateSelectedDbsTables', 'removeSelectedDbTable', 'updateSelectedGeoFolders']),
+        ...mapActions(['fetchFolderTree', 'fetchTables', 'removeSelectedGeoFolder', 'updateSelectedDbsTables', 'updateLayerNames', 'removeSelectedDbTable', 'updateSelectedGeoFolders']),
         listToTree(list) {
             let idCounter = 1;
             const tree = [];
@@ -121,10 +121,15 @@ export default {
                     this.fetchTables(this.selectedDb);
                 } else if (node.type === 'table') {
                     this.selectedTable = node.name;
-                    this.updateSelectedDbsTables({
-                        db: this.selectedDb,
-                        table: node.name
-                    });
+                    if (this.selectedDb.includes(".gpkg")) {
+                        // TODO: Handle GeoPackage specific logic
+                        this.updateLayerNames(this.selectedDb, node.name);
+                    } else {
+                        this.updateSelectedDbsTables({
+                            db: this.selectedDb,
+                            table: node.name
+                        });
+                    }
                 } else if (node.type === 'file') {
                     this.updateSelectedGeoFolders(node.path);
                 }

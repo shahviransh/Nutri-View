@@ -917,21 +917,46 @@ def save_data_and_create_zip(geometry_and_suffixes, base_filename, file_path):
             zipf.write(file_path, arcname)
 
 
+
 def get_table_names(data):
     """
-    Get the names of all tables in a SQLite database.
+    Get the names of all tables in a SQLite (.db3) or GeoPackage (.gpkg) database.
     """
     try:
         db_path = data.get("db_path")
-        conn = sqlite3.connect(safe_join(Config.PATHFILE, db_path))
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
-        # Map real table names to alias names
-        alias_tables = [
-            alias_mapping.get(table[0], {}).get("alias", table[0]) for table in tables
-        ]
-        return {"tables": alias_tables}
+        # TODO: Check if gpkg is supported
+        full_path = safe_join(Config.PATHFILE, db_path)
+        tables = []
+        
+        # For regular SQLite (.db3)
+        if db_path.endswith(".db3"):
+            conn = sqlite3.connect(full_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            rows = cursor.fetchall()
+            tables = [
+                alias_mapping.get(row[0], {}).get("alias", row[0]) for row in rows
+            ]
+
+        # For GeoPackage (.gpkg)
+        elif db_path.endswith(".gpkg"):
+            # Vector layers
+            vector_ds = ogr.Open(full_path)
+            if vector_ds:
+                for i in range(vector_ds.GetLayerCount()):
+                    layer = vector_ds.GetLayerByIndex(i)
+                    tables.append(layer.GetName())
+
+            # Raster layers
+            raster_ds = gdal.Open(full_path)
+            if raster_ds:
+                for subdataset in raster_ds.GetSubDatasets():
+                    name = subdataset[0].split(":")[-1]
+                    if name not in tables:
+                        tables.append(name)
+        else:
+            return {"error": "Unsupported file type. Only .db3 and .gpkg are supported."}
+        return {"tables": tables}
     except Exception as e:
         return {"error": str(e)}
     finally:
@@ -1741,7 +1766,7 @@ def process_geospatial_data(data):
     file_paths = map(
         lambda x: safe_join(Config.PATHFILE, x), json.loads(data.get("file_paths"))
     )
-    layer_names_map = data.get("layer_names", {})
+    layer_names_map = json.loads(data.get("layer_names", "{'GeoDB.gpkg': []}"))
     combined_geojson = {}
     combined_bounds = None
     raster_color_levels = []
@@ -1754,7 +1779,7 @@ def process_geospatial_data(data):
         file_path_list = [path]
         # TODO: Handle GeoPackage (.gpkg) files
         if path.endswith(".gpkg"):
-            layer_names = layer_names_map.get(os.path.basename(path), [])
+            layer_names = layer_names_map.get(path, [])
             vector_ds = ogr.Open(path)
             raster_ds = gdal.Open(path)
 
@@ -2106,7 +2131,7 @@ def export_map_service(image, form_data):
             if file_path.endswith(".shp"):
                 gdf = gpd.read_file(file_path)
                 gdf.plot(ax=ax, edgecolor="black")
-            elif file_path.endswith(".tif") or file_path.endswith(".tiff"):
+            elif file_path.endswith((".tif", ".tiff")):
                 dataset = gdal.Open(file_path)
                 band = dataset.GetRasterBand(1)
                 cmap = get_metadata_colormap(band)

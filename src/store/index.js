@@ -13,6 +13,7 @@ const store = createStore({
       end: "",
     },
     tooltipColumns: {},
+    layerNames: {},
     theme: "light",
     pageTitle: "",
     folderTree: [],
@@ -63,6 +64,15 @@ const store = createStore({
     },
     SET_ALL_SELECTED_COLUMNS(state, value) {
       state.allSelectedColumns = value;
+    },
+    // TODO: Check if this is needed
+    SET_LAYER_NAMES(state, { db, layerName }) {
+      if (!state.layerNames[db]) {
+        state.layerNames[db] = [];
+      }
+      state.layerNames[db].push(layerName);
+      // Ensure no duplicates
+      state.layerNames[db] = [...new Set(state.layerNames[db])];
     },
     SET_COLUMNS(state, { columns }) {
       state.columns = [...state.geoColumns, ...columns];
@@ -366,6 +376,9 @@ const store = createStore({
     },
     updateToolTipColumns({ commit }, columns) {
       commit("SET_TOOLTIP_COLUMNS", columns);
+    },
+    updateLayerNames({ commit }, { db, layerName }) {
+      commit("SET_LAYER_NAMES", { db, layerName });
     },
     updateSelectedDbsTables({ commit }, { db, table }) {
       commit("SET_SELECTED_DBS_TABLES", { db, table });
