@@ -2317,7 +2317,7 @@ def convert_excels_to_db_service(excel_files, data):
                     else:
                         excel_filename_org = os.path.splitext(excel_filename)[0]
                         table_name = f"{excel_filename_org}_{sheet_name}".strip().replace(" ", "_")
-                        df["Organization"] = f"{excel_filename_org.split("_")[-1]}_{sheet_name.strip()}"
+                        df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
                         df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
                         df.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
                         df.dropna(how='all', inplace=True)
