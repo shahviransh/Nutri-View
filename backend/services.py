@@ -1733,41 +1733,6 @@ def fetch_geojson_colors(data):
         "new_feature": new_feature,
     }
 
-
-def extract_gpkg_layers(file_path):
-    """
-    Extracts all vector and raster layers from a .gpkg file.
-    Returns a list of temporary file paths for .shp (vector) and .tif (raster).
-    """
-    temp_paths = []
-
-    # Handle vector layers
-    vector_ds = ogr.Open(file_path)
-    if vector_ds:
-        for i in range(vector_ds.GetLayerCount()):
-            layer = vector_ds.GetLayerByIndex(i)
-            layer_name = layer.GetName()
-            temp_shp_path = os.path.join(Config.TEMPDIR, f"{layer_name}.shp")
-
-            if not os.path.exists(temp_shp_path):
-                shp_driver = ogr.GetDriverByName("ESRI Shapefile")
-                if os.path.exists(temp_shp_path):
-                    shp_driver.DeleteDataSource(temp_shp_path)
-                out_ds = shp_driver.CreateDataSource(temp_shp_path)
-                out_ds.CopyLayer(layer, layer_name)
-                out_ds = None
-            temp_paths.append(temp_shp_path)
-
-    # Handle raster layers
-    raster_ds = gdal.Open(file_path)
-    if raster_ds:
-        temp_tif_path = os.path.join(Config.TEMPDIR, f"{os.path.basename(file_path)}.tif")
-        if not os.path.exists(temp_tif_path):
-            gdal.Translate(temp_tif_path, raster_ds)
-        temp_paths.append(temp_tif_path)
-
-    return temp_paths
-
 def process_geospatial_data(data):
     """
     Process a geospatial file (shapefile or raster) and return GeoJSON/Tiff Image Url, bounds, and center.
@@ -1776,6 +1741,7 @@ def process_geospatial_data(data):
     file_paths = map(
         lambda x: safe_join(Config.PATHFILE, x), json.loads(data.get("file_paths"))
     )
+    layer_names_map = data.get("layer_names", {})
     combined_geojson = {}
     combined_bounds = None
     raster_color_levels = []
@@ -1788,14 +1754,39 @@ def process_geospatial_data(data):
         file_path_list = [path]
         # TODO: Handle GeoPackage (.gpkg) files
         if path.endswith(".gpkg"):
-            file_path_list = extract_gpkg_layers(path)
+            layer_names = layer_names_map.get(os.path.basename(path), [])
+            vector_ds = ogr.Open(path)
+            raster_ds = gdal.Open(path)
 
-        for file_path in file_path_list:
+            file_path_list = []
+
+            if vector_ds:
+                for layer_name in layer_names:
+                    if vector_ds.GetLayerByName(layer_name):
+                        file_path_list.append((path, layer_name, "vector"))
+
+            # Check for raster subdatasets
+            if raster_ds:
+                subdatasets = raster_ds.GetSubDatasets()
+                for sub_name, _ in subdatasets:
+                    if any(layer in sub_name for layer in layer_names):
+                        file_path_list.append((sub_name, None, "raster"))
+
+            continue  # process below using updated file_path_list
+
+        for entry in file_path_list:
+            if isinstance(entry, tuple):
+                file_path, layer_name, file_type = entry
+            else:
+                file_path = entry
+                layer_name = None
+                file_type = "shapefile" if file_path.endswith(".shp") else "raster"
+
             toolTipKey = f"{(os.path.basename(file_path),os.path.basename(file_path))}"
             # Check if the file is a shapefile (.shp)
-            if file_path.endswith(".shp"):
+            if file_type == "vector":
                 # Open shapefile
-                driver = ogr.GetDriverByName("ESRI Shapefile")
+                driver = ogr.OpenEx(file_path, gdal.OF_VECTOR, open_options=["LAYERS=" + layer_name])
                 dataset = driver.Open(file_path, 0)
                 if dataset is None:
                     continue
@@ -1950,7 +1941,7 @@ def process_geospatial_data(data):
                 # Save properties for each shapefile path
                 tool_tip[toolTipKey] = properties
             # Handle GeoTIFF files
-            elif file_path.endswith(".tif") or file_path.endswith(".tiff"):
+            elif file_type == "raster":
                 raster_dataset = gdal.Open(file_path)
                 if not raster_dataset:
                     continue
