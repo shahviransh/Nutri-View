@@ -371,34 +371,34 @@ def fetch_data_service(data):
                 }
             stats_df = calculate_statistics(df, statistics, date_type)
 
-        # TODO: Check
+        
         # Check if the DataFrame contains only needed columns according to the Attributes in Help.db3
-        # if os.path.exists(safe_join(Config.BASE_DIR, "Help.db3")):
-        #     # Connect to Help.db3 to fetch Help information
-        #     bmp_db_path = safe_join(Config.BASE_DIR, "Help.db3")
-        #     conn = sqlite3.connect(bmp_db_path)
-        #     query = "SELECT * FROM HelpMetadata"
-        #     bmp_df = pd.read_sql_query(query, conn)
-        #     conn.close()
+        if os.path.exists(safe_join(Config.BASE_DIR, "Help.db3")):
+            # Connect to Help.db3 to fetch Help information
+            bmp_db_path = safe_join(Config.BASE_DIR, "Help.db3")
+            conn = sqlite3.connect(bmp_db_path)
+            query = "SELECT * FROM HelpMetadata"
+            bmp_df = pd.read_sql_query(query, conn)
+            conn.close()
 
-        #     if not bmp_df.empty and "Help_ID" in df.columns:
-        #         unique_help_ids_df = df["Help_ID"].unique()
-        #         # Filter bmp_df for matching Help_IDs
-        #         bmp_df = bmp_df[bmp_df["Help_ID"].isin(unique_help_ids_df)]
+            if not bmp_df.empty and "Help_ID" in df.columns:
+                unique_help_ids_df = df["Help_ID"].unique()
+                # Filter bmp_df for matching Help_IDs
+                bmp_df = bmp_df[bmp_df["Help_ID"].isin(unique_help_ids_df)]
 
-        #         if not bmp_df.empty and "Attributes" in bmp_df.columns:
-        #             # Collect all attributes from the Attributes column
-        #             attributes_set = set()
-        #             for attr_str in bmp_df["Attributes"]:
-        #                 try:
-        #                     attrs = json.loads(attr_str)
-        #                     if isinstance(attrs, list):
-        #                         attributes_set.update(attrs)
-        #                 except (json.JSONDecodeError, TypeError):
-        #                     continue
+                if not bmp_df.empty and "Attributes" in bmp_df.columns:
+                    # Collect all attributes from the Attributes column
+                    attributes_set = set()
+                    for attr_str in bmp_df["Attributes"]:
+                        try:
+                            attrs = json.loads(attr_str)
+                            if isinstance(attrs, list):
+                                attributes_set.update(attrs)
+                        except (json.JSONDecodeError, TypeError):
+                            continue
 
-        #             # Filter df to include only relevant columns
-        #             df = df[[col for col in df.columns if col in attributes_set or col == "Help_ID"]]
+                    # Filter df to include only relevant columns
+                    df = df[[col for col in df.columns if col in attributes_set or col == "Help_ID"]]
         # Return the data and statistics as dictionaries
         return {
             "data": df.map(round_numeric_values).to_dict(orient="records"),
@@ -2299,7 +2299,7 @@ def convert_excels_to_db_service(excel_files, data):
                             if help_id not in existing_help_ids:
                                 help_entries.append({
                                     "Help_ID": help_id,
-                                    "Attribute": json.dumps(df.columns.tolist()+["Year"]),
+                                    "Attributes": json.dumps(df.columns.tolist()+["Year"]),
                                 })
                                 existing_help_ids.add(help_id)
                             df["Help_ID"] = help_id

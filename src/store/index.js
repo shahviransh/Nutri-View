@@ -87,8 +87,7 @@ const store = createStore({
 
       state.selectedColumns = state.exportColumns = [
         ...(columns.includes(state.dateType) ? [state.dateType] : []),
-        // TODO: Uncomment if Help_ID is needed
-        // ...(columns.includes("Help_ID") ? ["Help_ID"] : []),
+        ...(columns.includes("Help_ID") ? ["Help_ID"] : []),
         ...(columns.includes(state.idColumn) ? [state.idColumn] : []),
         ...state.selectedColumns,
       ];
