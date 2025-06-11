@@ -122,8 +122,7 @@ export default {
                 } else if (node.type === 'table') {
                     this.selectedTable = node.name;
                     if (this.selectedDb.includes(".gpkg")) {
-                        // TODO: Handle GeoPackage specific logic
-                        this.updateLayerNames(this.selectedDb, node.name);
+                        this.updateLayerNames({ db: this.selectedDb, layerName: node.name });
                     } else {
                         this.updateSelectedDbsTables({
                             db: this.selectedDb,
