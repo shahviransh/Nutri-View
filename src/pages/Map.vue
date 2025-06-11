@@ -216,7 +216,7 @@ export default {
                 if (newFolders.length > 0) {
                     this.fetchGeoJson();
                 }
-            }, 1000), // Adjust debounce delay as needed
+            }, 2000), // Adjust debounce delay as needed
             deep: true
         },
     },

@@ -65,7 +65,6 @@ const store = createStore({
     SET_ALL_SELECTED_COLUMNS(state, value) {
       state.allSelectedColumns = value;
     },
-    // TODO: Check if this is needed
     SET_LAYER_NAMES(state, { db, layerName }) {
       if (!state.layerNames[db]) {
         state.layerNames[db] = [];
@@ -367,7 +366,7 @@ const store = createStore({
     updateModelFolder({ commit }, folder) {
       commit("SET_PROJECT_FOLDER", folder);
     },
-    updateCalculation({ commit }, mathFormula ) {
+    updateCalculation({ commit }, mathFormula) {
       commit("SET_CALCULATION", mathFormula);
     },
     addColumns({ commit }, columns) {
@@ -378,6 +377,7 @@ const store = createStore({
     },
     updateLayerNames({ commit }, { db, layerName }) {
       commit("SET_LAYER_NAMES", { db, layerName });
+      commit("SET_SELECTED_GEO_FOLDERS", db);
     },
     updateSelectedDbsTables({ commit }, { db, table }) {
       commit("SET_SELECTED_DBS_TABLES", { db, table });
@@ -412,7 +412,7 @@ const store = createStore({
     updateXAxis({ commit }, xAxis) {
       commit("SET_XAXIS", xAxis);
     },
-    pushMessage({ commit }, { message, type, duration = window.__TAURI__  ? 5000 : 2000 }) {
+    pushMessage({ commit }, { message, type, duration = window.__TAURI__ ? 5000 : 2000 }) {
       commit("PUSH_MESSAGE", { message, type, duration });
     },
     sliceMessage({ commit }, index) {

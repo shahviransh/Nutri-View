@@ -922,9 +922,9 @@ def get_table_names(data):
     """
     Get the names of all tables in a SQLite (.db3) or GeoPackage (.gpkg) database.
     """
+    conn = None
     try:
         db_path = data.get("db_path")
-        # TODO: Check if gpkg is supported
         full_path = safe_join(Config.PATHFILE, db_path)
         tables = []
         
@@ -960,7 +960,8 @@ def get_table_names(data):
     except Exception as e:
         return {"error": str(e)}
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 
 def get_files_and_folders(data):
@@ -1033,7 +1034,7 @@ def get_files_and_folders(data):
                     files_and_folders.append(
                         {
                             "type": (
-                                "database" if file_rel_path.endswith(".db3") else "file"
+                                "database" if file_rel_path.endswith((".db3",".gpkg")) else "file"
                             ),
                             "name": file_rel_path,
                         }
@@ -1779,7 +1780,8 @@ def process_geospatial_data(data):
         file_path_list = [path]
         # TODO: Handle GeoPackage (.gpkg) files
         if path.endswith(".gpkg"):
-            layer_names = layer_names_map.get(path, [])
+            rel_path = os.path.relpath(path, Config.PATHFILE).replace("\\", "/")
+            layer_names = layer_names_map.get(rel_path, [])
             vector_ds = ogr.Open(path)
             raster_ds = gdal.Open(path)
 
@@ -1797,26 +1799,26 @@ def process_geospatial_data(data):
                     if any(layer in sub_name for layer in layer_names):
                         file_path_list.append((sub_name, None, "raster"))
 
-            continue  # process below using updated file_path_list
-
         for entry in file_path_list:
             if isinstance(entry, tuple):
                 file_path, layer_name, file_type = entry
             else:
                 file_path = entry
                 layer_name = None
-                file_type = "shapefile" if file_path.endswith(".shp") else "raster"
+                file_type = "vector" if file_path.endswith(".shp") else "raster"
 
             toolTipKey = f"{(os.path.basename(file_path),os.path.basename(file_path))}"
             # Check if the file is a shapefile (.shp)
             if file_type == "vector":
-                # Open shapefile
-                driver = ogr.OpenEx(file_path, gdal.OF_VECTOR, open_options=["LAYERS=" + layer_name])
-                dataset = driver.Open(file_path, 0)
+                # Open GeoPackage or shapefile
+                dataset = ogr.Open(file_path)
                 if dataset is None:
                     continue
-
-                layer = dataset.GetLayer()
+                
+                if layer_name:
+                    layer = dataset.GetLayerByName(layer_name)
+                else:
+                    layer = dataset.GetLayer()
 
                 # Handle Spatial Reference System
                 source_srs = layer.GetSpatialRef()
