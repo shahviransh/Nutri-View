@@ -31,10 +31,10 @@
                             the server. You'll see an upload progress indicator.</li>
                     </ul>
                 </li>
-                <li>The panel shows folders and supported files: Databases (<code>.db3</code>), Shapefiles
+                <li>The panel shows folders and supported files: Databases (<code>.db3, .gpkg</code>), Shapefiles
                     (<code>.shp</code>), and Rasters (<code>.tif</code>/<code>.tiff</code>).</li>
                 <li>Click on folders (📁) or databases (🗄️) to expand or collapse them.</li>
-                <li>Click on database files (<code>.db3</code>) to fetch and display the tables within them in the tree.
+                <li>Click on database files (<code>.db3, .gpkg</code>) to fetch and display the tables/layers within them in the tree.
                 </li>
                 <li>Click on individual tables (📑) or geospatial files (📄) to select them for analysis in the current
                     view (Project/Table, Graph, or Map). Selected items are highlighted. Click again to deselect.</li>
