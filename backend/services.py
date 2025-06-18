@@ -2328,16 +2328,14 @@ def convert_excels_to_db_service(excel_files, data):
                                 df_final = merged
                                 
                                 # Replace empty strings with NaN and drop empty rows
-                                df_final.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                                df_final.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
+                                df_final.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                                 df_final.dropna(subset=["BMP_ID", "Organization"], inplace=True)
                                 df_final.fillna("NaN", inplace=True)
                     else:
                         excel_filename_org = os.path.splitext(excel_filename)[0]
                         table_name = f"{excel_filename_org}_{sheet_name}".strip().replace(" ", "_")
                         df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
-                        df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
-                        df.replace(r'(?i)^nan$', np.nan, regex=True, inplace=True)
+                        df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                         df.dropna(how='all', inplace=True)
                         df.fillna("NaN", inplace=True)
                         df.to_sql(table_name, conn, if_exists="replace", index=False)
