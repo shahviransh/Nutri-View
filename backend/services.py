@@ -2244,7 +2244,9 @@ def convert_excels_to_db_service(excel_files, data):
                 excel_path = saved_files[excel_filename]
                 excel_data = pd.ExcelFile(excel_path)
                 all_sheets = set(excel_data.sheet_names)
-
+                # Find year from filename, "data_2023-2024.xlsx" or "data_2023-12.xlsx"
+                match = re.findall(r"\d{4}-\d{4}|\d{4}-\d{2}", excel_filename)
+                current_year = match[0] if match else f"Unknown"
                 # Decide which sheets to include
                 target_sheets = set(sheet_list) if sheet_list else all_sheets - used_sheets[excel_filename]
 
@@ -2345,8 +2347,7 @@ def convert_excels_to_db_service(excel_files, data):
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
-                current_year = datetime.now().year
-                df_final["Year"] = f"{current_year - 1}-{current_year}"
+                df_final["Year"] = current_year
                 # Reorder columns to ensure consistent structure
                 cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
