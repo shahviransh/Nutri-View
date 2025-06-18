@@ -2236,6 +2236,7 @@ def convert_excels_to_db_service(excel_files, data):
             conn = sqlite3.connect(db_path)
 
             file_sheet_map = mapping[db_name]
+            current_year = None
 
             for excel_filename, sheet_list in file_sheet_map.items():
                 if excel_filename not in saved_files:
