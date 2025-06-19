@@ -96,7 +96,7 @@
                     <ul>
                         <li><strong>Desktop App:</strong> Specify the directory path on your computer where exported
                             files will be saved. Defaults to a 'dataExport' folder within the application's internal
-                            data directory (`{IMWEBs-Viewer App Path}/_up_/backend/apppy/_internal/dataExport`). You can change this to folders like Desktop, Downloads, or Documents.</li>
+                            data directory (`{CWA-Viewer App Path}/_up_/backend/apppy/_internal/dataExport`). You can change this to folders like Desktop, Downloads, or Documents.</li>
                         <li><strong>Web App:</strong> This field is ignored. Exported files will be offered as downloads
                             through your browser.</li>
                     </ul>

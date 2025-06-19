@@ -45,5 +45,39 @@
     "rollup-plugin-visualizer": "^5.14.0",
     "tailwindcss": "^3.4.17",
     "vite": "^6.3.4"
-  }
+  },
+  // "main": "electron/main.js",
+  // "build": {
+  //   "appId": "ca.eccc.CWA-Viewer",
+  //   "productName": "CWA-Viewer",
+  //   "directories": {
+  //     "buildResources": "build",
+  //     "output": "dist"
+  //   },
+  //   "win": {
+  //     "icon": "electron/icon.ico"
+  //   },
+  //   "files": [
+  //     "dist/**/*",
+  //     "node_modules/**/*",
+  //     "electron/**/*",
+  //     "backend/**/*"
+  //   ],
+  //   "extraResources": [
+  //     {
+  //       "from": "backend/apppy",
+  //       "to": "backend",
+  //       "filter": [
+  //         "**/*"
+  //       ]
+  //     },
+  //     "backend/apppy.py",
+  //     "backend/config.py",
+  //     "backend/errors_handler.py",
+  //     "backend/routes.py",
+  //     "backend/services.py",
+  //     "backend/utils.py",
+  //     "backend/requirements.txt"
+  //   ]
+  // }
 }
