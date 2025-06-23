@@ -1778,7 +1778,6 @@ def process_geospatial_data(data):
 
     for path in file_paths:
         file_path_list = [path]
-        # TODO: Handle GeoPackage (.gpkg) files
         if path.endswith(".gpkg"):
             rel_path = os.path.relpath(path, Config.PATHFILE).replace("\\", "/")
             layer_names = layer_names_map.get(rel_path, [])
