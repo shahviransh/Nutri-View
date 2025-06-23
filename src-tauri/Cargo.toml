@@ -1,7 +1,7 @@
 [package]
 name = "CWA-Viewer"
 version = "0.2.7"
-description = "IMWEBs Viewer"
+description = "CWA Viewer"
 authors = ["Viransh Shah"]
 license = "MIT"
 repository = "https://github.com/shahviransh/CWA-Viewer"
