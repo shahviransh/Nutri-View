@@ -42,6 +42,7 @@
                 <option value="bar">Bar</option>
                 <option value="line">Line</option>
                 <option value="scatter">Scatter</option>
+                <option value="pie">Pie</option>
                 <option value="bar-line">Line & Bar</option>
                 <option value="line-scatter">Line & Scatter</option>
                 <option value="bar-scatter">Bar & Scatter</option>
