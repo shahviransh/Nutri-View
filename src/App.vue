@@ -142,7 +142,7 @@ export default {
 
             const timeout = setTimeout(() => {
               this.uploadMessage = "Still uploading... the folder might be large, please wait a bit longer.";
-            }, 2000); // 30 seconds
+            }, 30000); // 30 seconds
 
             // Send the form data with the files and folder structure to the backend
             const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/upload_folder`, formData, {
