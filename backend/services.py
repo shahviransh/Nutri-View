@@ -577,7 +577,7 @@ def save_to_file(
         "scatter": "scatter",
     }
 
-    if not is_empty:
+    if not is_empty and date_type:
         # Check if the dataframe contains an ID column
         ID = next((col for col in dataframe1.columns if "ID" in col), "ID")
         dataframe1[date_type] = pd.to_datetime(dataframe1[date_type]).dt.date
