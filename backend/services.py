@@ -452,7 +452,7 @@ def export_data_service(data, is_empty=False):
                 if not column.endswith(id_column) and column != date_type
             ]
 
-        if not date_type:
+        if not date_type and output_format not in ["csv", "txt", "shp"]:
             return {
                 "error": "Graph creation cannot be performed for non-time series data"
             }
