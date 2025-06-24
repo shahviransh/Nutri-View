@@ -2392,7 +2392,7 @@ def convert_to_gpkg_service(uploaded_files):
     # Group files by basename for shapefile components
     base_names = set(os.path.splitext(f.filename)[0] for f in uploaded_files)
 
-    output_gpkg = os.path.join(Config.BASE_DIR, "GeoDB.gpkg")
+    output_gpkg = os.path.join(Config.BASE_DIR, "Geospatial/GeoDB.gpkg")
     first_layer_created = False
     
     def delete_layer_if_exists(gpkg_path, layer_name):
