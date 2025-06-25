@@ -244,6 +244,7 @@ def register_routes(app, cache):
     @app.route("/api/geospatial", methods=["GET"])
     @jwt_required()
     @cache.cached(timeout=300, query_string=True)
+    # TODO: test GeoDB.db3
     def geospatial():
         """
         API endpoint to return GeoJSON/Tiff Image Url, bounds, and center.
