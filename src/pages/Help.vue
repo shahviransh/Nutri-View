@@ -2,7 +2,22 @@
     <div :class="[theme, 'help-container']">
         <h1>CWA Viewer Help Page</h1>
 
-        <section>
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#common-concepts">Common Concepts</a></li>
+                <li><a href="#project-table-section">Project / Table Section</a></li>
+                <li><a href="#calculator">Calculator</a></li>
+                <li><a href="#graph-section">Graph Section</a></li>
+                <li><a href="#map-section">Map Section</a></li>
+                <li><a href="#desktop-vs-web">Desktop App vs. Web App</a></li>
+                <li><a href="#troubleshooting">Troubleshooting & Common Issues</a></li>
+                <li><a href="#contact-support">Contact & Support</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview">
             <h2>Overview</h2>
             <p>
                 The CWA Viewer is a tool designed for exploring, analyzing, and visualizing environmental model data
@@ -16,7 +31,7 @@
             </p>
         </section>
 
-        <section>
+        <section id="common-concepts">
             <h2>Common Concepts</h2>
 
             <h4>Folder Selection & Navigation (Left Panel)</h4>
@@ -111,7 +126,7 @@
             </ul>
         </section>
 
-        <section>
+        <section id="project-table-section">
             <h2>Project / Table Section</h2>
             <p>These sections focus on viewing and exporting tabular data.</p>
 
@@ -145,7 +160,7 @@
             </ol>
         </section>
 
-        <section>
+        <section id="calculator">
             <h2>Calculator ➕➖✖️➗</h2>
             <p>The calculator allows you to perform mathematical operations on numerical columns or create new columns
                 based on formulas.</p>
@@ -192,7 +207,7 @@
             </ol>
         </section>
 
-        <section>
+        <section id="graph-section">
             <h2>Graph Section 📊</h2>
             <p>This section allows you to visualize tabular data as various types of graphs.</p>
 
@@ -208,7 +223,7 @@
                 <li>Use the <strong>Settings Panel</strong> to filter by IDs, date range, interval, and aggregation
                     method (if needed).</li>
                 <li>Select the desired <strong>Graph Type</strong> from the dropdown in the Export Panel (e.g., Scatter,
-                    Line, Bar, or combinations like Bar & Scatter).</li>
+                    Line, Bar, or combinations like Bar & Scatter; <strong>Pie</strong> is available for non-time series data).</li>
                 <li>If using a combined graph type (e.g., Bar & Scatter), additional dropdowns will appear below the
                     Graph Type selector. Use these to assign specific Y-Axis columns to be displayed as Bars or Scatters
                     (or Lines). *All selected Y-axis columns must be assigned.*</li>
@@ -244,7 +259,7 @@
             </ol>
         </section>
 
-        <section>
+        <section id="map-section">
             <h2>Map Section 🗺️</h2>
             <p>This section visualizes geospatial data (Shapefiles, Rasters) and can overlay tabular data onto
                 Shapefiles.</p>
@@ -323,7 +338,7 @@
             </ol>
         </section>
 
-        <section>
+        <section id="desktop-vs-web">
             <h2>Desktop App vs. Web App</h2>
             <p>While both versions offer the same core functionality, there are key differences:</p>
             <ul>
@@ -350,7 +365,7 @@
             </ul>
         </section>
 
-        <section>
+        <section id="troubleshooting">
             <h2>Troubleshooting & Common Issues</h2>
             <ul>
                 <li><strong>Data Not Loading/Fetching Fails:</strong> Ensure the selected database (<code>.db3</code>)
@@ -379,7 +394,7 @@
             </ul>
         </section>
 
-        <section>
+        <section id="contact-support">
             <h2>Contact & Support</h2>
             <ul>
                 <li><strong>Web App:</strong> Use the "Contact Admin" button on the login page for issues or password
@@ -434,6 +449,38 @@ export default {
     line-height: 1.6;
     overflow-y: auto;
     height: calc(100vh - 100px);
+}
+
+.toc {
+    background: var(--code-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1em 1.5em;
+    margin-bottom: 2em;
+    max-width: 400px;
+}
+
+.toc h2 {
+    margin-top: 0;
+    font-size: 1.2em;
+    color: var(--header-color);
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.toc ul {
+    margin-left: 0;
+    padding-left: 1em;
+}
+
+.toc li {
+    margin-bottom: 0.3em;
+}
+
+.toc a {
+    color: var(--link-color);
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 h1,
