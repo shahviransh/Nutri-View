@@ -68,6 +68,7 @@ def fetch_data_service(data):
         # Initialize DataFrame to store the merged data
         df = pd.DataFrame()
 
+        # TODO: Test multiple PMs.db3
         # Fetch the data for each database and table, and merge it based on date_type & 'ID'
         for table in db_tables:
             try:
