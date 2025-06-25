@@ -8,6 +8,7 @@ blinker
 Bottleneck 
 branca 
 Brotli 
+brotlicffi 
 cachelib
 cairocffi
 Cerberus
@@ -27,7 +28,7 @@ DateTime
 debugpy
 decorator
 defusedxml
-et_xmlfile
+et-xmlfile 
 executing
 Flask
 Flask-Caching
@@ -40,9 +41,9 @@ GDAL
 geopandas 
 git-filter-repo
 h11
-h2 
-hpack 
-hyperframe 
+h2
+hpack
+hyperframe
 idna 
 itsdangerous
 Jinja2 
@@ -73,6 +74,7 @@ PyJWT
 pyogrio 
 pyparsing 
 pyproj 
+pyshp
 PySocks 
 python-dateutil 
 python-dotenv
@@ -108,4 +110,4 @@ wsproto
 XlsxWriter
 xyzservices 
 zope.interface
-zstandard 
+zstandard
