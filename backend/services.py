@@ -1480,7 +1480,7 @@ def bounds_overlap_or_similar(bounds1, bounds2, tolerance=0.0001):
         return True, merged_bounds
 
     # If completely far apart, return the first bound
-    return False, bounds1
+    return True, bounds1
 
 
 def get_raster_normalized(band):
@@ -1807,7 +1807,7 @@ def process_geospatial_data(data):
                 layer_name = None
                 file_type = "vector" if file_path.endswith(".shp") else "raster"
 
-            toolTipKey = f"{(os.path.basename(file_path),os.path.basename(file_path))}"
+            toolTipKey = f"{(os.path.basename(layer_name or file_path),os.path.basename(layer_name or file_path))}"
             # Check if the file is a shapefile (.shp)
             if file_type == "vector":
                 # Open GeoPackage or shapefile
@@ -1919,7 +1919,7 @@ def process_geospatial_data(data):
                 }
                 geojson_metadata = {}
                 geojson_path = os.path.join(
-                    Config.TEMPDIR, os.path.basename(file_path) + "_output.geojson"
+                    Config.TEMPDIR, os.path.basename(layer_name or file_path) + "_output.geojson"
                 )
 
                 # Check if a GeoJSON file already exists and extract metadata
