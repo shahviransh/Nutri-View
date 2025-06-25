@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div :class="[theme, 'container']">
         <h1>Excel file(s) to Database(s) Converter and Shapefiles/Rasters to GeoPackage Converter</h1>
 
         <input type="file" multiple @change="handleFileUpload" class="file-input" />
@@ -62,8 +62,8 @@
                     </span>
                 </span>
             </label>
-            <div>
-                <label><input type="radio" value="replace" v-model="conflictAction" /> Replace</label>
+            <div class="conflict-action">
+                <label><input type="radio" value="replace" v-model="conflictAction" class="" /> Replace</label>
                 <label class="ml"><input type="radio" value="append" v-model="conflictAction" /> Append</label>
             </div>
         </div>
@@ -139,6 +139,7 @@
 
 <script>
 import axios from "axios";
+import { mapState } from "vuex";
 
 export default {
     data() {
@@ -201,7 +202,8 @@ export default {
             return this.mappingForm.find(db => db.name === "GeoDB.gpkg")?.files.some(f =>
                 f.filename.toLowerCase().endsWith(".tif")
             );
-        }
+        },
+        ...mapState(["theme"]),
     },
     methods: {
         handleFileUpload(event) {
@@ -369,15 +371,34 @@ export default {
 </script>
 
 <style scoped>
+/* Theme variables */
+.light {
+    --bg-color: #f9f9f9;
+    --text-color: #333;
+    --header-color: #0056b3;
+    --link-color: #007bff;
+    --code-bg: #eee;
+    --border-color: #ddd;
+}
+
+.dark {
+    --bg-color: #2d2d2d;
+    --text-color: #f0f0f0;
+    --header-color: #64b5f6;
+    --link-color: #90caf9;
+    --code-bg: #444;
+    --border-color: #555;
+}
+
 .container {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
     font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: black;
+    color: var(--text-color);
     color-scheme: light dark;
     overflow-y: auto;
 }
@@ -417,20 +438,39 @@ export default {
 }
 
 h1 {
-    font-size: 24px;
+    font-size: 2em;
     margin-bottom: 20px;
+    color: var(--header-color);
+    text-align: center;
+    border-bottom: 2px solid var(--header-color);
+    padding-bottom: 0.2em;
+}
+
+h2 {
+    color: var(--header-color);
+    font-size: 1.6em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2em;
 }
 
 .section {
-    margin-bottom: 20px;
+    margin-bottom: 2em;
+}
+
+.section label {
+    color: var(--text-color);
 }
 
 .text-input {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     width: calc(50% - 10px);
     margin-bottom: 5px;
+    background: var(--code-bg);
+    color: var(--text-color);
 }
 
 .ml {
@@ -441,13 +481,15 @@ h1 {
     width: 100%;
     height: 100px;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     font-family: monospace;
+    background: var(--code-bg);
+    color: var(--text-color);
 }
 
 .error-message {
-    color: red;
+    color: #e53935;
     font-weight: bold;
     margin-bottom: 10px;
 }
@@ -455,19 +497,24 @@ h1 {
 .delete-button {
     background: none;
     border: none;
-    color: red;
+    color: #e53935;
     font-weight: bold;
     cursor: pointer;
 }
 
 .file-input {
     margin-bottom: 20px;
+    background: var(--code-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px;
 }
 
 .db-box {
-    background: white;
+    background: var(--code-bg);
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     margin-top: 10px;
     border-radius: 4px;
 }
@@ -480,25 +527,28 @@ h1 {
 .add-button {
     background: none;
     border: none;
-    color: #007bff;
+    color: var(--link-color);
     cursor: pointer;
     margin-top: 5px;
+    font-weight: bold;
 }
 
 .submit-button {
-    background-color: #007bff;
+    background-color: var(--link-color);
     color: white;
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .response {
     margin-top: 20px;
-    background: #e9ecef;
+    background: var(--code-bg);
     padding: 10px;
     border-radius: 4px;
+    color: var(--text-color);
 }
 
 .tooltip {
@@ -531,5 +581,26 @@ h1 {
 .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
+}
+
+.conflict-action {
+    margin-top: 10px;
+}
+
+.conflict-action label {
+    color: var(--text-color);
+    background: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.conflict-action label:hover {
+    background: var(--code-bg);
+}
+
+.conflict-action input[type="radio"] {
+    accent-color: var(--header-color);
 }
 </style>
