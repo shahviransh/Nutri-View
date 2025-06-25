@@ -68,7 +68,6 @@ def fetch_data_service(data):
         # Initialize DataFrame to store the merged data
         df = pd.DataFrame()
 
-        # TODO: Test multiple PMs.db3
         # Fetch the data for each database and table, and merge it based on date_type & 'ID'
         for table in db_tables:
             try:
@@ -110,7 +109,7 @@ def fetch_data_service(data):
                             fetch_columns.add(col)
 
                 # Remove fetched columns from columns list
-                columns = list(set(columns) - set(fetch_columns)) + [date_type] + ID
+                columns = list(set(columns) - set(fetch_columns)) + [date_type] + ID if columns != "All" else "All"
 
                 if not fetch_columns:
                     # If there are no common columns, skip the table
@@ -155,7 +154,7 @@ def fetch_data_service(data):
                             table["table"]
                         ):
                             merge_on_columns.append(col)
-                    df = pd.merge(df, df_temp, on=merge_on_columns, how="inner")
+                    df = pd.merge(df, df_temp, on=merge_on_columns, how="inner") if merge_on_columns else pd.concat([df, df_temp], axis=1)
                     # Drop rows with NaN in the required columns
                     df.dropna(inplace=True)
             except Exception as e:
