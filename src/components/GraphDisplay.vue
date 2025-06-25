@@ -58,7 +58,7 @@ export default {
                 const valueColumns = this.selectedColumns.filter(col => ![this.ID, "Help_ID"].includes(col));
                 const ringCount = valueColumns.length;
                 const minRadius = 30;
-                const maxRadius = 70;
+                const maxRadius = 80;
                 const radiusStep = (maxRadius - minRadius) / (ringCount || 1);
 
                 // Collect all unique values for legend
