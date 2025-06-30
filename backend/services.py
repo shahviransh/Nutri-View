@@ -2304,16 +2304,17 @@ def convert_excels_to_db_service(excel_files, data):
                             
                             # TODO: Check metrics and units for each column
                             # Create a metrics dictionary for numeric columns
-                            float_to_decimal_4 = {"Surface_Area", "Drainage_Area"}
-                            float_to_integer = {"Wetland_Volume", "Volume", "Acres"}
+                            float_to_decimal_4 = {"Surface_Area", "Drainage_Area", "Acres", "Implementation Area"}
+                            float_to_integer = {"Wetland_Volume", "Volume"}
 
                             # Units per column
                             column_units = {
                                 "Wetland_Volume": "m^3",
                                 "Surface_Area": "km^2",
                                 "Acres": "acres",
+                                "Implementation Area": "acres",
                                 "Volume": "m^3",
-                                "Drainage_Area": "km^2"
+                                "Drainage_Area": "acres"
                             }
                             metrics = {}                            
                             for col in df.columns:
@@ -2330,6 +2331,11 @@ def convert_excels_to_db_service(excel_files, data):
                                 elif pd.api.types.is_float_dtype(df[col]):
                                     # Default for other floats
                                     metrics[col] = f"{column_units.get(col, '')}, decimal"
+                            # Update df colums to include metric uint in (e.g. "Column_Name (unit)")
+                            df.columns = [
+                                f"{col} ({metrics[col].split(",")[0]})" if col in metrics else col
+                                for col in df.columns
+                            ]
                             if help_id not in existing_help_ids:
                                 help_entries.append({
                                     "Help_ID": help_id,
