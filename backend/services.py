@@ -2301,10 +2301,40 @@ def convert_excels_to_db_service(excel_files, data):
                                 help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
                             else:
                                 help_id = f"Unknown_{sheet_name.strip()}"
+                            
+                            # TODO: Check metrics and units for each column
+                            # Create a metrics dictionary for numeric columns
+                            float_to_decimal_4 = {"Surface_Area", "Drainage_Area"}
+                            float_to_integer = {"Wetland_Volume", "Volume", "Acres"}
+
+                            # Units per column
+                            column_units = {
+                                "Wetland_Volume": "m^3",
+                                "Surface_Area": "km^2",
+                                "Acres": "acres",
+                                "Volume": "m^3",
+                                "Drainage_Area": "km^2"
+                            }
+                            metrics = {}                            
+                            for col in df.columns:
+                                if col in float_to_decimal_4:
+                                    # Float column, keep to 4 decimals
+                                    metrics[col] = f"{column_units.get(col, '')}, decimal"
+                                    df[col] = df[col].round(4)
+                                elif col in float_to_integer:
+                                    # Float column but round to nearest int
+                                    metrics[col] = f"{column_units.get(col, '')}, integer"
+                                    df[col] = df[col].round().astype("Int64")
+                                elif pd.api.types.is_integer_dtype(df[col]):
+                                    metrics[col] = f"{column_units.get(col, '')}, integer"
+                                elif pd.api.types.is_float_dtype(df[col]):
+                                    # Default for other floats
+                                    metrics[col] = f"{column_units.get(col, '')}, decimal"
                             if help_id not in existing_help_ids:
                                 help_entries.append({
                                     "Help_ID": help_id,
                                     "Attributes": json.dumps(df.columns.tolist()+["Year"]),
+                                    "Metrics": json.dumps(metrics),
                                 })
                                 existing_help_ids.add(help_id)
                             df["Help_ID"] = help_id

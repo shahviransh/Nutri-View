@@ -69,7 +69,13 @@ export default {
             return this.data.filter((row) => {
                 return this.selectedColumnsFilter.every((col) => {
                     const filter = this.columnFilters[col];
-                    return !filter || String(row[col]).toLowerCase().includes(filter.toLowerCase());
+                    if (!filter) return true;
+                    // TODO: Check multiple filter values
+                    // Support multiple filter values separated by comma
+                    const filterValues = filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f);
+                    if (filterValues.length === 0) return true;
+                    const cellValue = String(row[col]).toLowerCase();
+                    return filterValues.some(fv => cellValue.includes(fv));
                 });
             });
         },
