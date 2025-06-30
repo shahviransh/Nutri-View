@@ -2246,8 +2246,23 @@ def convert_excels_to_db_service(excel_files, data):
                 excel_data = pd.ExcelFile(excel_path)
                 all_sheets = set(excel_data.sheet_names)
                 # Find year from filename, "data_2023-2024.xlsx" or "data_2023-12.xlsx"
-                match = re.findall(r"\d{4}-\d{4}|\d{4}-\d{2}", excel_filename)
-                current_year = match[0] if match else f"Unknown"
+                match = re.findall(r"\d{4}-\d{4}|\d{4}-\d{2}", excel_filename)                
+                if match:
+                    year_range = match[0]
+                    
+                    # Split the matched string on '-'
+                    parts = year_range.split('-')
+                    first_year = parts[0]
+                    second_year = parts[1]
+                    
+                    # If second_year is only 2 digits, prepend the first two digits of first_year
+                    if len(second_year) == 2:
+                        second_year = first_year[:2] + second_year
+                    
+                    # Now build the date string for March 31st of second_year
+                    current_year = f"{second_year}-03-31"
+                else:
+                    current_year = "Unknown"
                 # Decide which sheets to include
                 target_sheets = set(sheet_list) if sheet_list else all_sheets - used_sheets[excel_filename]
 
@@ -2384,7 +2399,7 @@ def convert_excels_to_db_service(excel_files, data):
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
-                df_final["Year"] = current_year
+                df_final["Year"] = datetime.strptime(current_year, "%Y-%m-%d").year if current_year != "Unknown" else current_year
                 # Reorder columns to ensure consistent structure
                 cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
