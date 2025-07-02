@@ -1,7 +1,7 @@
 {
   "name": "cwa-viewer",
   "private": true,
-  "version": "0.2.7",
+  "version": "0.2.8",
   "author": "Viransh Shah",
   "type": "module",
   "scripts": {
