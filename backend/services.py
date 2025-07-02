@@ -2310,7 +2310,7 @@ def convert_excels_to_db_service(excel_files, data):
                                 df['Organization'].dropna()
                             ))
                             valid_organizations = [
-                                org for org in valid_organizations if "na" not in org.lower() and org.strip() != ""
+                                org for org in valid_organizations if org.lower() != "nan" and org.strip() != ""
                             ]                            
                             if valid_organizations:
                                 help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
