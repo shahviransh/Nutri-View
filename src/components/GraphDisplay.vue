@@ -54,7 +54,7 @@ export default {
     computed: {
         chartOptions() {
             // Multi-series pie: each selected column is a ring in a single pie chart
-            if (this.graphType === 'pie' && !this.dateType) {
+            if (this.graphType === 'pie') {
                 const valueColumns = this.selectedColumns.filter(col => ![this.ID, "Help_ID"].includes(col));
                 const ringCount = valueColumns.length;
                 const minRadius = 30;

@@ -2315,7 +2315,6 @@ def convert_excels_to_db_service(excel_files, data):
                             if valid_organizations:
                                 help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
                             
-                            # TODO: Check metrics and units for each column
                             # Create a metrics dictionary for numeric columns
                             float_to_decimal_4 = {"Surface_Area", "Drainage_Area", "Acres", "Implementation Area"}
                             float_to_integer = {"Wetland_Volume", "Volume"}

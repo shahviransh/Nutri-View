@@ -22,15 +22,34 @@
                     <ExportTableStats />
                     <button @click="fetchData">Fetch Graph</button>
                     <button @click="exportData">Export Graph</button>
+                    <!-- Button to open the filter popup -->
+                    <button @click="showFilterPopup = true">
+                        Filter Columns
+                    </button>
                 </span>
+                <!-- Filter Popup -->
+                <div v-if="showFilterPopup" class="filter-popup-overlay" @click.self="showFilterPopup = false">
+                    <div class="filter-popup">
+                        <h3>Filter Columns</h3>
+                        <div v-for="col in selectedColumns" :key="col" class="filter-row">
+                            <label :for="'filter-' + col">{{ col }}:</label>
+                            <input :id="'filter-' + col" v-model="columnFilters[col]"
+                                placeholder="Enter values, comma separated" class="filter-input" />
+                        </div>
+                        <div class="popup-actions">
+                            <button @click="applyFilters">Apply</button>
+                            <button @click="showFilterPopup = false">Close</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <!--TODO: Add multi column filtering and selection-->
             <!-- Component 4: Main View -->
             <div class="main-view">
                 <!-- Graph Display -->
-                <GraphDisplay :data="data" :selectedColumns="onlyShowSelected ? [onlyShowSelected] : selectedColumns" :selectedIds="selectedIds"
-                    :dateType="dateType" :ID="idColumn" :theme="theme" :refreshKey="refreshKey"
-                    :currentZoomStart="currentZoomStart" :currentZoomEnd="currentZoomEnd"
+                <GraphDisplay :data="filteredData"
+                    :selectedColumns="onlyShowSelected ? [onlyShowSelected] : selectedColumns"
+                    :selectedIds="selectedIds" :dateType="dateType" :ID="idColumn" :theme="theme"
+                    :refreshKey="refreshKey" :currentZoomStart="currentZoomStart" :currentZoomEnd="currentZoomEnd"
                     :multiGraphType="multiGraphType" :graphType="graphType" />
 
             </div>
@@ -69,7 +88,28 @@ export default {
             data: [],
             refreshKey: 0,
             onlyShowSelected: null,
+            showFilterPopup: false,
+            columnFilters: {},
+            filteredData: [],
         };
+    },
+    watch: {
+        data: {
+            immediate: true,
+            handler() {
+                this.applyFilters();
+            }
+        },
+        selectedColumns: {
+            immediate: true,
+            handler(newCols) {
+                // Initialize filters for new columns
+                newCols.forEach(col => {
+                    if (!(col in this.columnFilters)) this.columnFilters[col] = '';
+                });
+                this.applyFilters();
+            }
+        }
     },
     computed: {
         ...mapState(["selectedDbsTables", "selectedColumns", "allSelectedColumns", "idColumn", "mathFormula", "multiGraphType", "currentZoomStart", "currentZoomEnd", "selectedIds", "dateRange", "selectedInterval", "selectedStatistics", "selectedMethod", "exportColumns", "graphType", "exportIds", "exportDate", "exportInterval", "dateType", "exportPath", "exportFilename", "exportFormat", "exportOptions", "theme"]),
@@ -124,6 +164,7 @@ export default {
                 this.data = response.data.data;
                 this.stats = response.data.stats;
                 this.statsColumns = response.data.statsColumns;
+                this.applyFilters();
                 this.refreshKey += 1;
                 if (response.data.error) {
                     alert('Error fetching data: ' + response.data.error);
@@ -192,7 +233,74 @@ export default {
                 console.error('Error exporting data: ', error.message);
             }
         },
+        applyFilters() {
+            // Filter this.data using columnFilters and selectedColumns
+            if (!this.data || !Array.isArray(this.data)) {
+                this.filteredData = [];
+                return;
+            }
+            this.filteredData = this.data.filter(row => {
+                return this.selectedColumns.every(col => {
+                    const filter = this.columnFilters[col];
+                    if (!filter) return true;
+                    const filterValues = filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f);
+                    if (filterValues.length === 0) return true;
+                    const cellValue = String(row[col] ?? "").toLowerCase();
+                    return filterValues.some(fv => cellValue.includes(fv));
+                });
+            });
+            this.showFilterPopup = false;
+        },
     },
 };
 </script>
 <style src="../assets/pages.css"></style>
+<style scoped>
+.filter-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-popup {
+    background: var(--bg-color, #fff);
+    color: var(--text-color, #222);
+    border-radius: 8px;
+    padding: 24px 32px;
+    min-width: 320px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+}
+
+.filter-row {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-row label {
+    min-width: 90px;
+    font-weight: bold;
+}
+
+.filter-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+</style>

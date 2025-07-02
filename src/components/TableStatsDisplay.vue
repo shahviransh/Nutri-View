@@ -70,7 +70,6 @@ export default {
                 return this.selectedColumnsFilter.every((col) => {
                     const filter = this.columnFilters[col];
                     if (!filter) return true;
-                    // TODO: Check multiple filter values
                     // Support multiple filter values separated by comma
                     const filterValues = filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f);
                     if (filterValues.length === 0) return true;
