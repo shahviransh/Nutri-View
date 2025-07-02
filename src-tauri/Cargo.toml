@@ -1,6 +1,6 @@
 [package]
 name = "CWA-Viewer"
-version = "0.2.7"
+version = "0.2.8"
 description = "CWA Viewer"
 authors = ["Viransh Shah"]
 license = "MIT"
