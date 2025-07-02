@@ -2392,7 +2392,7 @@ def convert_excels_to_db_service(excel_files, data):
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
-                df_final["Year"] = datetime.strptime(current_year, "%Y-%m-%d").year if current_year != "Unknown" else current_year
+                df_final["Year"] = datetime.strptime(current_year, "%Y-%m-%d") if current_year != "Unknown" else current_year
                 # Reorder columns to ensure consistent structure
                 cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
