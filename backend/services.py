@@ -2310,12 +2310,10 @@ def convert_excels_to_db_service(excel_files, data):
                                 df['Organization'].dropna()
                             ))
                             valid_organizations = [
-                                org for org in valid_organizations if org.lower() != "nan" and org.strip() != ""
+                                org for org in valid_organizations if "na" not in org.lower() and org.strip() != ""
                             ]                            
                             if valid_organizations:
                                 help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
-                            else:
-                                help_id = f"Unknown_{sheet_name.strip()}"
                             
                             # TODO: Check metrics and units for each column
                             # Create a metrics dictionary for numeric columns
@@ -2341,11 +2339,7 @@ def convert_excels_to_db_service(excel_files, data):
                                     # Float column but round to nearest int
                                     metrics[col] = f"{column_units.get(col, '')}, integer"
                                     df[col] = df[col].round().astype("Int64")
-                                elif pd.api.types.is_integer_dtype(df[col]):
-                                    metrics[col] = f"{column_units.get(col, '')}, integer"
-                                elif pd.api.types.is_float_dtype(df[col]):
-                                    # Default for other floats
-                                    metrics[col] = f"{column_units.get(col, '')}, decimal"
+                                    df[col] = df[col].astype(object)
                             # Update df colums to include metric uint in (e.g. "Column_Name (unit)")
                             df.columns = [
                                 f"{col} ({metrics[col].split(",")[0]})" if col in metrics else col
