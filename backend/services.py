@@ -1232,7 +1232,7 @@ def get_columns_and_time_range(db_path, table_name):
         # Check and query for specific date/time columns (using real column names)
         for date_col, dtype, inter in [
             ("Time", "Time", "daily"),
-            ("Date", "Time", "daily"),
+            ("Date", "Date", "daily"),
             ("Month", "Month", "monthly"),
             ("Year", "Year", "yearly"),
         ]:
@@ -1245,8 +1245,6 @@ def get_columns_and_time_range(db_path, table_name):
                     start_date = df[date_col].min().strftime("%Y-%m-%d")
                     end_date = df[date_col].max().strftime("%Y-%m-%d")
                 elif date_col in ["Month", "Year"]:
-                    if df[date_col].dtype == "object":
-                        continue
                     start_date = int(df[date_col].min())
                     end_date = int(df[date_col].max())
                 date_type = dtype
@@ -2347,7 +2345,7 @@ def convert_excels_to_db_service(excel_files, data):
                             if help_id not in existing_help_ids:
                                 help_entries.append({
                                     "Help_ID": help_id,
-                                    "Attributes": json.dumps(df.columns.tolist()+["Year"]),
+                                    "Attributes": json.dumps(df.columns.tolist()+["Date"]),
                                     "Metrics": json.dumps(metrics),
                                 })
                                 existing_help_ids.add(help_id)
@@ -2392,9 +2390,9 @@ def convert_excels_to_db_service(excel_files, data):
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
-                df_final["Year"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
+                df_final["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
                 # Reorder columns to ensure consistent structure
-                cols = ["Year", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
+                cols = ["Date", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
                 df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
                 df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
