@@ -177,8 +177,9 @@ const store = createStore({
     },
     SET_YAXIS(state, yAxis) {
       state.yAxis = yAxis.includes(state.idColumn) ? yAxis : [state.idColumn, ...yAxis];
+      state.yAxis = [...new Set(yAxis)];
       state.selectedColumns = [
-        ...(state.xAxis ? [state.xAxis] : []),
+        ...(state.xAxis.length == 0 ? [state.xAxis] : []),
         ...state.yAxis
       ];
       state.exportColumns = [...state.selectedColumns];
