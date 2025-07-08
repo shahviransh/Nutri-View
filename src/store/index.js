@@ -96,6 +96,9 @@ const store = createStore({
       state.geoColumns = [];
       state.selectedColumns = [];
       state.exportColumns = [];
+      state.selectedDbsTables = [];
+      state.selectedGeoFolders = [];
+      state.selectedIds = [];
     },
     ADD_COLUMNS(state, { columns }) {
       const temp = columns.filter((c) => !state.columns.includes(c) || state.geoColumns.includes(c));
