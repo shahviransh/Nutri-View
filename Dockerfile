@@ -4,7 +4,7 @@ FROM continuumio/miniconda3
 WORKDIR /app
 
 # Copy Python dependencies
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Create Conda environment
 RUN conda create -n venv python=3.12 -y && \
