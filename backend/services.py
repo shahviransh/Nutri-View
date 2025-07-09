@@ -2387,6 +2387,18 @@ def convert_excels_to_db_service(excel_files, data):
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
+                    
+            def safe_append_to_sql(df, table_name, conn, if_exists="append"):
+                # Get existing table column names
+                existing_cols = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 0", conn).columns.tolist()
+
+                # Add missing columns to DataFrame with NaN values
+                for col in existing_cols:
+                    if col not in df.columns:
+                        df[col] = 'NaN'
+                df = df[existing_cols]
+
+                df.to_sql(table_name, conn, if_exists=if_exists, index=False)
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
@@ -2395,8 +2407,11 @@ def convert_excels_to_db_service(excel_files, data):
                 cols = ["Date", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
                 cols = [c for c in cols if c in df_final.columns]
                 df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
-                df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
-                
+                if conflict_action == "replace":
+                    df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
+                else:
+                    safe_append_to_sql(df_final, f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action)
+
             # Save help metadata to Help.db3
             if help_entries:
                 help_df = pd.DataFrame(help_entries)
