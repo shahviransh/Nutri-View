@@ -399,9 +399,18 @@ def fetch_data_service(data):
 
                     # Filter df to include only relevant columns
                     df = df[[col for col in df.columns if col in attributes_set or col == "Help_ID"]]
+                    
+        def replace_nan_with_none(records):
+            import math
+            for record in records:
+                for key, value in record.items():
+                    if (isinstance(value, float) or isinstance(value, int)) and math.isnan(value):
+                        record[key] = None
+            return records
+        
         # Return the data and statistics as dictionaries
         return {
-            "data": df.map(round_numeric_values).to_dict(orient="records"),
+            "data": replace_nan_with_none(df.map(round_numeric_values).to_dict(orient="records")),
             "new_feature": new_feature,
             "stats": stats_df.to_dict(orient="records") if stats_df is not None else [],
             "statsColumns": stats_df.columns.tolist() if stats_df is not None else [],
@@ -589,6 +598,8 @@ def save_to_file(
         # Classify columns based on their value ranges (example threshold: >100 for secondary y-axis)
         selected_columns = [col for col in dataframe1.columns if col != date_type]
         for column in selected_columns:
+            if dataframe1[column].dtype == "object":
+                continue
             if dataframe1[column].max() > 100:
                 secondary_axis_columns.append(column)
             else:
@@ -2375,14 +2386,12 @@ def convert_excels_to_db_service(excel_files, data):
                                 # Replace empty strings with NaN and drop empty rows
                                 df_final.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                                 df_final.dropna(subset=["BMP_ID", "Organization"], inplace=True)
-                                df_final.fillna("NaN", inplace=True)
                     else:
                         excel_filename_org = os.path.splitext(excel_filename)[0]
                         table_name = f"{excel_filename_org}_{sheet_name}".strip().replace(" ", "_")
                         df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
                         df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                         df.dropna(how='all', inplace=True)
-                        df.fillna("NaN", inplace=True)
                         df.to_sql(table_name, conn, if_exists="replace", index=False)
 
                     # Mark sheet as used
