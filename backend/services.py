@@ -2404,7 +2404,7 @@ def convert_excels_to_db_service(excel_files, data):
                 # Add missing columns to DataFrame with NaN values
                 for col in existing_cols:
                     if col not in df.columns:
-                        df[col] = 'NaN'
+                        df[col] = np.nan
                 df = df[existing_cols]
 
                 df.to_sql(table_name, conn, if_exists=if_exists, index=False)
