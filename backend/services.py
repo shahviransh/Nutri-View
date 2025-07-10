@@ -401,10 +401,9 @@ def fetch_data_service(data):
                     df = df[[col for col in df.columns if col in attributes_set or col == "Help_ID"]]
                     
         def replace_nan_with_none(records):
-            import math
             for record in records:
                 for key, value in record.items():
-                    if (isinstance(value, float) or isinstance(value, int)) and math.isnan(value):
+                    if (isinstance(value, float) or isinstance(value, int)) and np.isnan(value):
                         record[key] = None
             return records
         
