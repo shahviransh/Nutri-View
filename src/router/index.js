@@ -43,7 +43,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(window.__TAURI__ ? "/" : "/CWA-Viewer"), // Use default web history
+  history: createWebHistory("/"), // Use default web history
   routes,
 });
 
