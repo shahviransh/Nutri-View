@@ -25,7 +25,7 @@ export default defineConfig(async () => ({
   // Add the base and build configuration for Electron/Tauri
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   // Use relative paths for Tauri, absolute for IIS
-  base: process.env.TAURI_ENV_PLATFORM ? "./" : "/CWA-Viewer",  // Ensure assets are loaded relatively
+  base: "./",  // Ensure assets are loaded relatively
   // // For Electron
   // build: {
   //   outDir: 'dist',  // Output folder for the build
