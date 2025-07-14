@@ -69,6 +69,7 @@ export default {
         "Graph",
         "Map",
         "Converter",
+        "Guest Permissions",
         "Help",
       ],
       activePage: "Project", // Set default page here

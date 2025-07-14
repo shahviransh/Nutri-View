@@ -4,6 +4,7 @@ import Graph from "../pages/Graph.vue";
 import Map from "../pages/Map.vue";
 import Help from "../pages/Help.vue";
 import Converter from "../pages/Converter.vue";
+import GuestPermissions from "../pages/GuestPermissions.vue";
 
 const routes = [
   {
@@ -34,6 +35,11 @@ const routes = [
     path: "/converter",
     name: "Converter",
     component: Converter,
+  },
+  {
+    path: '/admin/permissions',
+    name: 'Guest Permissions',
+    component: GuestPermissions,
   },
   {
     path: "/help",
