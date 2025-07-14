@@ -60,7 +60,7 @@ jobs:
         with:
           activate-environment: venv
           auto-activate-base: true
-          channels: defaults,conda-forge
+          channels: conda-forge,defaults
           python-version: 3.12
 
       - name: Build backend with PyInstaller (Windows only)
