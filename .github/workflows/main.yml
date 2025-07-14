@@ -63,9 +63,6 @@ jobs:
           channels: defaults,conda-forge
           python-version: 3.12
 
-      - name: Set Conda default channels
-        run: conda config --add channels defaults
-
       - name: Build backend with PyInstaller (Windows only)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
