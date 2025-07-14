@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "identifier": "ca.eccc.CWA-Viewer",
+  "identifier": "ca.eccc.Nutri-View",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -10,7 +10,7 @@
   "app": {
     "windows": [
       {
-        "title": "CWA-Viewer",
+        "title": "Nutri-View",
         "width": 800,
         "height": 600,
         "resizable": true,

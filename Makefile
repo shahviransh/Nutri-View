@@ -26,13 +26,13 @@ python:
 build:
 ifeq ($(ARG), tauri)
 	@echo "Building Tauri app..."
-	del /F /Q "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release\CWA-Viewer_*.msi"
-	del /F /Q "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release\CWA-Viewer_*.exe"
-	if exist "src-tauri\target\release\CWA-Viewer_*.exe" del /F /Q "src-tauri\target\release\CWA-Viewer_*.exe"
-	if exist "src-tauri\target\release\CWA-Viewer_*.msi" del /F /Q "src-tauri\target\release\CWA-Viewer_*.msi"
+	del /F /Q "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release\Nutri-View_*.msi"
+	del /F /Q "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release\Nutri-View_*.exe"
+	if exist "src-tauri\target\release\Nutri-View_*.exe" del /F /Q "src-tauri\target\release\Nutri-View_*.exe"
+	if exist "src-tauri\target\release\Nutri-View_*.msi" del /F /Q "src-tauri\target\release\Nutri-View_*.msi"
 	npm run tauri:build
-	xcopy "src-tauri\target\release\CWA-Viewer_*.exe" "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release" /Y /I /D
-	xcopy "src-tauri\target\release\CWA-Viewer_*.msi" "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release" /Y /I /D
+	xcopy "src-tauri\target\release\Nutri-View_*.exe" "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release" /Y /I /D
+	xcopy "src-tauri\target\release\Nutri-View_*.msi" "$(USERPROFILE)\OneDrive - McMaster University\Co-op 2nd Work Term - CWA\release" /Y /I /D
 else ifeq ($(ARG), electron)
 	@echo "Building Electron app..."
 	npm run electron:build
