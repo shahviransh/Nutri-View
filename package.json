@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "electron": "npx electron . && vite",
     "electron:build": "vite build && electron-builder",
-    "tauri": "node src-tauri/main.js && tauri",
+    "tauri": "tauri",
     "tauri:build": "node src-tauri/main.js && tauri build && node src-tauri/move.js"
   },
   "dependencies": {
