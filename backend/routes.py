@@ -104,7 +104,7 @@ def register_routes(app, cache):
                     if allowed:
                         return fn(*args, **kwargs)
                     else:
-                        return jsonify({"error": f"Guest does not have '{permission_type}' permission"}), 403
+                        return jsonify({"error": f"Guest does not have '{permission_type}' permission"})
 
                 return jsonify({"error": "Invalid role"}), 403
 
