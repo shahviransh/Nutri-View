@@ -2329,11 +2329,11 @@ def convert_excels_to_db_service(excel_files, data):
 
                             metrics = {}                            
                             for col in df.columns:
-                                if col in float_to_decimal_4:
+                                if any(sub in col for sub in float_to_decimal_4):
                                     # Float column, keep to 4 decimals
                                     metrics[col] = f"decimal"
                                     df[col] = df[col].round(4)
-                                elif col in float_to_integer:
+                                elif any(sub in col for sub in float_to_integer):
                                     # Float column but round to nearest int
                                     metrics[col] = f"integer"
                                     df[col] = df[col].round().astype("Int64")
