@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "CWA-Viewer"
+name = "Nutri-View"
 version = "0.2.7"
 dependencies = [
  "log",

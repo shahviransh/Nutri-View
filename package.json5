@@ -1,5 +1,5 @@
 {
-  "name": "cwa-viewer",
+  "name": "nutri-view",
   "private": true,
   "version": "0.2.8",
   "author": "Viransh Shah",
@@ -48,8 +48,8 @@
   },
   // "main": "electron/main.js",
   // "build": {
-  //   "appId": "ca.eccc.CWA-Viewer",
-  //   "productName": "CWA-Viewer",
+  //   "appId": "ca.eccc.Nutri-View",
+  //   "productName": "Nutri-View",
   //   "directories": {
   //     "buildResources": "build",
   //     "output": "dist"

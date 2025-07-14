@@ -7,7 +7,7 @@
         <div class="loginPanel">
             <div class="panel-body">
                 <fieldset>
-                    <legend class="panel-title">Sign in to CWA Viewer</legend>
+                    <legend class="panel-title">Sign in to Nutri View</legend>
                     <form @submit.prevent="login(false)">
                         <div class="formGroup">
                             <label for="username"><b>Email address:</b></label>
@@ -69,7 +69,7 @@
                 </div>
                 <input type="hidden" name="_cc" :value="cc" />
                 <input type="hidden" name="_next" :value="thankYouUrl">
-                <input type="hidden" name="_subject" value="Contact from CWA Viewer Form">
+                <input type="hidden" name="_subject" value="Contact from Nutri View Form">
                 <input type="hidden" name="_template" value="box">
                 <button type="submit" class="submitButton">Send</button>
                 <button type="button" class="cancelButton" @click="showContactForm = false">Cancel</button>

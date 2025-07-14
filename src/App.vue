@@ -9,7 +9,7 @@
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="title-container">
-        <h2>CWA Viewer</h2>
+        <h2>Nutri View</h2>
       </div>
       <button class="logout-button" @click="logout">🚪 Logout</button>
       <button class="theme-switch" @click="toggleTheme">
