@@ -9,7 +9,9 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt,
     verify_jwt_in_request,
+    get_jwt_identity
 )
+from functools import wraps
 from dotenv import load_dotenv
 import secrets
 import bcrypt
@@ -52,11 +54,62 @@ JWT_SECRET_KEY = secrets.token_hex(256)
 # Store revoked tokens
 revoked_tokens = set()
 
+# Guest permission flags: any combination of these
+GUEST_PERMISSIONS = {
+    "read": False,
+    "write": False,
+    "download": False,
+    "upload": False,
+}
+
+# Define what kind of permission each route requires
+PERMISSION_REQUIRED = {
+    "get_data": "read",
+    "get_tables": "read",
+    "list_files": "read",
+    "get_table_details": "read",
+    "geospatial": "read",
+    "get_geojson_colors": "read",
+    "export_data": "download",
+    "export_map": "download",
+    "serve_tif": "download",
+    "upload_folder": "upload",
+    "convert_excels_to_db": "write",
+    "convert_to_gpkg": "write",
+}
+
+# Guest credentials
+GUEST_USERNAME = os.getenv("GUEST_USERNAME", "guest")
+GUEST_PASSWORD = os.getenv(
+    "GUEST_PASSWORD", bcrypt.hashpw("guest".encode(), bcrypt.gensalt()).decode()
+)
 
 def register_routes(app, cache):
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600  # 1 hour
     jwt = JWTManager(app)
+    
+    def require_permission(permission_type):
+        def decorator(fn):
+            @wraps(fn)
+            def wrapper(*args, **kwargs):
+                identity = get_jwt_identity()
+                role = get_jwt()["role"]
+
+                if role == "admin":
+                    return fn(*args, **kwargs)
+
+                if role == "guest":
+                    allowed = GUEST_PERMISSIONS.get(permission_type, False)
+                    if allowed:
+                        return fn(*args, **kwargs)
+                    else:
+                        return jsonify({"error": f"Guest does not have '{permission_type}' permission"}), 403
+
+                return jsonify({"error": "Invalid role"}), 403
+
+            return wrapper
+        return decorator
 
     @app.route("/api/login", methods=["POST"])
     def login():
@@ -70,14 +123,14 @@ def register_routes(app, cache):
         if not username or not password:
             return jsonify({"error": "Missing username or password"}), 400
 
-        # Verify username and hashed password
-        if username != ADMIN_USERNAME or not bcrypt.checkpw(
-            password.encode(), ADMIN_PASSWORD.encode()
-        ):
+        if username == ADMIN_USERNAME and bcrypt.checkpw(password.encode(), ADMIN_PASSWORD.encode()):
+            role = "admin"
+        elif username == GUEST_USERNAME and bcrypt.checkpw(password.encode(), GUEST_PASSWORD.encode()):
+            role = "guest"
+        else:
             return jsonify({"error": "Invalid credentials"}), 401
 
-        access_token = create_access_token(identity=username)
-
+        access_token = create_access_token(identity=username, additional_claims={"role": role})
         return jsonify(access_token=access_token)
 
     @app.route("/api/logout", methods=["POST"])
@@ -103,11 +156,29 @@ def register_routes(app, cache):
         try:
             verify_jwt_in_request()
             return jsonify({"valid": True}), 200
-        except:
+        except Exception as e:
             return jsonify({"valid": False}), 401
+        
+    @app.route("/api/guest-permissions", methods=["GET", "POST"])
+    @jwt_required()
+    def edit_guest_permissions():
+        role = get_jwt()["role"]
+        if role != "admin":
+            return jsonify({"error": "Admins only"}), 403
+
+        if request.method == "GET":
+            return jsonify(GUEST_PERMISSIONS)
+
+        new_perms = request.get_json()
+        for perm in ["read", "write", "upload", "download"]:
+            if perm in new_perms and isinstance(new_perms[perm], bool):
+                GUEST_PERMISSIONS[perm] = new_perms[perm]
+
+        return jsonify({"message": "Guest permissions updated", "permissions": GUEST_PERMISSIONS})
 
     @app.route("/api/upload_folder", methods=["POST"])
     @jwt_required()
+    @require_permission("upload")
     def upload_folder():
         """
         Endpoint to upload a folder with files to the server.
@@ -141,6 +212,7 @@ def register_routes(app, cache):
 
     @app.route("/api/get_data", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     @cache.cached(timeout=300, query_string=True)
     def get_data():
         data = request.args
@@ -156,6 +228,7 @@ def register_routes(app, cache):
 
     @app.route("/api/export_data", methods=["GET", "POST"])
     @jwt_required()
+    @require_permission("download")
     # This endpoint is not cached because the file is generated dynamically
     def export_data():
         data = request.args if request.method == "GET" else request.json
@@ -190,6 +263,7 @@ def register_routes(app, cache):
 
     @app.route("/api/get_tables", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     @cache.cached(timeout=300, query_string=True)
     def get_tables():
         data = request.args
@@ -206,6 +280,7 @@ def register_routes(app, cache):
 
     @app.route("/api/list_files", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     def list_files():
         """
         Endpoint to list all files and directories in the specified path.
@@ -223,6 +298,7 @@ def register_routes(app, cache):
 
     @app.route("/api/get_table_details", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     @cache.cached(
         timeout=300, query_string=True
     )  # Cache this endpoint for 2 minutes (120 seconds)
@@ -243,6 +319,7 @@ def register_routes(app, cache):
 
     @app.route("/api/geospatial", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     @cache.cached(timeout=300, query_string=True)
     def geospatial():
         """
@@ -261,6 +338,7 @@ def register_routes(app, cache):
 
     @app.route("/api/geotiff/<path:filename>", methods=["GET"])
     @jwt_required()
+    @require_permission("download")
     def serve_tif(filename):
         """
         Serve the TIF file from the specified path.
@@ -281,6 +359,7 @@ def register_routes(app, cache):
 
     @app.route("/api/get_geojson_colors", methods=["GET"])
     @jwt_required()
+    @require_permission("read")
     @cache.cached(timeout=300, query_string=True)
     def get_geojson_colors():
         """
@@ -299,6 +378,7 @@ def register_routes(app, cache):
 
     @app.route("/api/export_map", methods=["POST"])
     @jwt_required()
+    @require_permission("download")
     def export_map():
         """
         API endpoint to export the map image.
@@ -324,6 +404,7 @@ def register_routes(app, cache):
     
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     @jwt_required()
+    @require_permission("write")
     def convert_excels_to_db():
         """
         API endpoint to convert Excel files to database entries.
@@ -341,6 +422,7 @@ def register_routes(app, cache):
 
     @app.route("/api/convert_to_gpkg", methods=["POST"])
     @jwt_required()
+    @require_permission("write")
     def convert_to_gpkg():
         """
         API endpoint to convert uploaded files to GPKG format.
