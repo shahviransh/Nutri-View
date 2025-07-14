@@ -65,7 +65,7 @@ export default {
                 const legendData = [
                     ...new Set(
                         valueColumns.flatMap(col =>
-                            this.data.map(row => row[col])
+                            this.data.map(row => row[col]).filter(v => v !== null && v !== undefined && v !== '')
                         )
                     )
                 ];

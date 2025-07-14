@@ -2327,31 +2327,17 @@ def convert_excels_to_db_service(excel_files, data):
                             float_to_decimal_4 = {"Surface_Area", "Drainage_Area", "Acres", "Implementation Area"}
                             float_to_integer = {"Wetland_Volume", "Volume"}
 
-                            # Units per column
-                            column_units = {
-                                "Wetland_Volume": "m^3",
-                                "Surface_Area": "km^2",
-                                "Acres": "acres",
-                                "Implementation Area": "acres",
-                                "Volume": "m^3",
-                                "Drainage_Area": "acres"
-                            }
                             metrics = {}                            
                             for col in df.columns:
                                 if col in float_to_decimal_4:
                                     # Float column, keep to 4 decimals
-                                    metrics[col] = f"{column_units.get(col, '')}, decimal"
+                                    metrics[col] = f"decimal"
                                     df[col] = df[col].round(4)
                                 elif col in float_to_integer:
                                     # Float column but round to nearest int
-                                    metrics[col] = f"{column_units.get(col, '')}, integer"
+                                    metrics[col] = f"integer"
                                     df[col] = df[col].round().astype("Int64")
                                     df[col] = df[col].astype(object)
-                            # Update df colums to include metric uint in (e.g. "Column_Name (unit)")
-                            df.columns = [
-                                f"{col} ({metrics[col].split(",")[0]})" if col in metrics else col
-                                for col in df.columns
-                            ]
                             if help_id not in existing_help_ids:
                                 help_entries.append({
                                     "Help_ID": help_id,
