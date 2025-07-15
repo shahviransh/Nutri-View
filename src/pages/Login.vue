@@ -93,7 +93,7 @@
     <div class="logos">
         <img src="../assets/ECCC.png" alt="ECCC Logo" class="ecccLogo" />
         <img src="../assets/CWA.png" alt="CWA Logo" class="cwaLogo" />
-        <img src="../assets/Nutri-View.png" alt="CWA Logo" class="cwaLogo" />
+        <img src="../assets/Nutri-View.png" alt="Nutri View" class="cwaLogo" />
     </div>
 </template>
 
