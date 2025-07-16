@@ -39,6 +39,7 @@ from validate import (
     validate_export_map_args,
     validate_serve_tif_args,
 )
+import json
 
 # Load environment variables
 load_dotenv()
@@ -54,13 +55,18 @@ JWT_SECRET_KEY = secrets.token_hex(256)
 # Store revoked tokens
 revoked_tokens = set()
 
-# Guest permission flags: any combination of these
-GUEST_PERMISSIONS = {
-    "read": False,
-    "write": False,
-    "download": False,
-    "upload": False,
-}
+# Guest permission flags: read from guest_permissions.json or set defaults
+try:
+    with open("guest_permissions.json", "r") as f:
+        GUEST_PERMISSIONS = json.load(f)
+except FileNotFoundError:
+    # Default permissions for guest user
+    GUEST_PERMISSIONS = {
+        "read": False,
+        "write": False,
+        "download": False,
+        "upload": False,
+    }
 
 # Define what kind of permission each route requires
 PERMISSION_REQUIRED = {
@@ -174,6 +180,10 @@ def register_routes(app, cache):
             if perm in new_perms and isinstance(new_perms[perm], bool):
                 GUEST_PERMISSIONS[perm] = new_perms[perm]
 
+        # Save the updated permissions so even server restarts will keep the changes
+        with open("guest_permissions.json", "w") as f:
+            json.dump(GUEST_PERMISSIONS, f)
+        
         return jsonify({"message": "Guest permissions updated", "permissions": GUEST_PERMISSIONS})
 
     @app.route("/api/upload_folder", methods=["POST"])
