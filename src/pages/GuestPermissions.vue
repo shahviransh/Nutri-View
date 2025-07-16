@@ -18,52 +18,78 @@
     </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script>
 import axios from "axios";
 import { mapState } from "vuex";
-const { theme } = mapState(["theme"]);
 
-const permissions = ref({
-    read: false,
-    write: false,
-    upload: false,
-    download: false,
-});
-const permissionKeys = Object.keys(permissions.value);
-
-const loading = ref(false);
-const message = ref("");
-const error = ref("");
-
-const fetchPermissions = async () => {
-    try {
-        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/guest-permissions`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        permissions.value = { ...permissions.value, ...res.data };
-    } catch (err) {
-        error.value = "Failed to fetch guest permissions.";
+export default {
+    name: "GuestPermissions",
+    computed: {
+        ...mapState(["theme"]),
+        permissionKeys() {
+            return Object.keys(this.permissions);
+        }
+    },
+    data() {
+        return {
+            permissions: {
+                read: false,
+                write: false,
+                upload: false,
+                download: false
+            },
+            loading: false,
+            message: "",
+            error: ""
+        };
+    },
+    methods: {
+        async fetchPermissions() {
+            try {
+                const res = await axios.get(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/guest-permissions`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                        }
+                    }
+                );
+                this.permissions = { ...this.permissions, ...res.data };
+            } catch (err) {
+                this.error = "Failed to fetch guest permissions.";
+            }
+        },
+        async savePermissions() {
+            this.loading = true;
+            this.message = "";
+            this.error = "";
+            try {
+                const res = await axios.post(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/guest-permissions`,
+                    this.permissions,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+                this.message = "Guest permissions updated successfully.";
+                // If the API returns the updated perms:
+                if (res.data.permissions) {
+                    this.permissions = { ...this.permissions, ...res.data.permissions };
+                }
+            } catch (err) {
+                this.error = "Failed to save guest permissions.";
+            } finally {
+                this.loading = false;
+            }
+        }
+    },
+    mounted() {
+        this.fetchPermissions();
     }
 };
-
-const savePermissions = async () => {
-    loading.value = true;
-    message.value = "";
-    error.value = "";
-    try {
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/guest-permissions`, permissions.value, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        message.value = "Guest permissions updated successfully.";
-    } catch (err) {
-        error.value = "Failed to save guest permissions.";
-    } finally {
-        loading.value = false;
-    }
-};
-
-onMounted(fetchPermissions);
 </script>
 
 <style scoped>
