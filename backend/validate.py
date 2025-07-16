@@ -286,6 +286,18 @@ def validate_serve_tif_args(filename):
         return {"error": "Invalid path specified for the GeoTIFF file."}
     return {"filename": filename}
 
+def validate_convert_excels_to_db_args(data):
+    schema = {
+        "mapping": {"type": "string", "required": True},
+        "header_mapping": {"type": "string", "required": True},
+        "merged_mapping": {"type": "string", "required": True},
+        "conflict_action": {
+            "type": "string",
+            "required": True,
+            "allowed": ["replace", "append"],
+        },
+    }
+    return validate_request_args(schema, data)
 
 def getUserValidationError(errors):
     """

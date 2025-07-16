@@ -38,6 +38,7 @@ from validate import (
     validate_geospatial_args,
     validate_export_map_args,
     validate_serve_tif_args,
+    validate_convert_excels_to_db_args
 )
 import json
 
@@ -415,6 +416,10 @@ def register_routes(app, cache):
 
         if not excel_files:
             return jsonify({"error": "Files and mapping data required"})
+        
+        validatetion_response = validate_convert_excels_to_db_args(data)
+        if validatetion_response.get("error", None):
+            return jsonify(validatetion_response)
 
         result = convert_excels_to_db_service(excel_files, data)
 
