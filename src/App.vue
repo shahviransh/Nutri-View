@@ -12,11 +12,13 @@
         <img src="/icon.ico" alt="App Icon" :style="{ width: '30px', height: '30px' }" />
         <h2>Nutri View</h2>
       </div>
-      <button class="logout-button" @click="logout">🚪 Logout</button>
-      <button class="theme-switch" @click="toggleTheme">
-        <span v-if="theme === 'light'">🌞</span>
-        <span v-else>🌜</span>
-      </button>
+      <div class="top-bar-buttons">
+        <button class="logout-button" @click="logout">🚪 Logout</button>
+        <button class="theme-switch" @click="toggleTheme">
+          <span v-if="theme === 'light'">🌞</span>
+          <span v-else>🌜</span>
+        </button>
+      </div>
     </header>
 
     <!-- Taskbar -->
@@ -292,21 +294,28 @@ body,
 .top-bar {
   background-color: var(--top-bar-bg);
   color: var(--top-bar-text);
-  padding: 1px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: 5px;
+}
+
+.top-bar-buttons {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .main-content {
   flex-grow: 1;
   height: 100%;
-}
-
-.title-container {
-  flex-grow: 1;
-  text-align: center;
 }
 
 .taskbar {

@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div :class="['container', theme]">
         <h2>Guest Permissions Management</h2>
 
         <div class="permissions">
@@ -9,7 +9,7 @@
             </label>
         </div>
 
-        <button @click="savePermissions" :disabled="loading">
+        <button @click="savePermissions" :disabled="loading" :class="{ disabled: loading }">
             {{ loading ? "Saving..." : "Save Changes" }}
         </button>
 
@@ -21,6 +21,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { mapState } from "vuex";
+const { theme } = mapState(["theme"]);
 
 const permissions = ref({
     read: false,
@@ -65,13 +67,32 @@ onMounted(fetchPermissions);
 </script>
 
 <style scoped>
+.light {
+    --bg-color: #fefefe;
+    --text-color: #000000;
+    --primary-color: #0066cc;
+    --disabled-color: #cccccc;
+    --message-color: green;
+    --error-color: red;
+}
+
+.dark {
+    --bg-color: #2e2e2e;
+    --text-color: #fafafa;
+    --primary-color: #3399ff;
+    --disabled-color: #555555;
+    --message-color: #8f8;
+    --error-color: #f88;
+}
+
 .container {
     max-width: 400px;
     margin: 40px auto;
     padding: 24px;
     border: 1px solid #ccc;
     border-radius: 12px;
-    background-color: #fefefe;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -86,6 +107,7 @@ h2 {
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
+    color: var(--text-color);
 }
 
 .permission-toggle {
@@ -93,6 +115,7 @@ h2 {
     align-items: center;
     gap: 10px;
     font-weight: 500;
+    color: var(--text-color);
 }
 
 button {
@@ -100,25 +123,25 @@ button {
     padding: 10px 0;
     border: none;
     border-radius: 6px;
-    background-color: #0066cc;
-    color: white;
+    color: var(--primary-color);
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 button:disabled {
-    background-color: #cccccc;
+    background-color: var(--disabled-color);
+    cursor: not-allowed;
 }
 
 .message {
-    color: green;
+    color: var(--message-color);
     text-align: center;
     margin-top: 10px;
 }
 
 .error {
-    color: red;
+    color: var(--error-color);
     text-align: center;
     margin-top: 10px;
 }
