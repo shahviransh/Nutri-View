@@ -252,6 +252,8 @@ export default {
       } finally {
         localStorage.removeItem("token");
         this.isAuthenticated = false;
+        this.updatePageTitle("Login");
+        this.$router.push({ name: "Login" }); // Redirect to login page
       }
     },
   },
