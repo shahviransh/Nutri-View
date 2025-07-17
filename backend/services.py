@@ -156,7 +156,7 @@ def fetch_data_service(data):
                             merge_on_columns.append(col)
                     df = pd.merge(df, df_temp, on=merge_on_columns, how="inner") if merge_on_columns else pd.concat([df, df_temp], axis=1)
                     # Drop rows with NaN in the required columns
-                    df.dropna(inplace=True)
+                    df.dropna(inplace=True, how="all")
             except Exception as e:
                 return {"error": f"Error while processing table {table_key}: {str(e)}"}
 

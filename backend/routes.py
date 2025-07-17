@@ -57,7 +57,7 @@ JWT_SECRET_KEY = secrets.token_hex(256)
 revoked_tokens = set()
 
 # Guest permission flags: read from guest_permissions.json
-with open("guest_permissions.json", "r") as f:
+with open("backend/guest_permissions.json", "r") as f:
     GUEST_PERMISSIONS = json.load(f)
 
 # Define what kind of permission each route requires
@@ -173,7 +173,7 @@ def register_routes(app, cache):
                 GUEST_PERMISSIONS[perm] = new_perms[perm]
 
         # Save the updated permissions so even server restarts will keep the changes
-        with open("guest_permissions.json", "w") as f:
+        with open("backend/guest_permissions.json", "w") as f:
             json.dump(GUEST_PERMISSIONS, f)
         
         return jsonify({"message": "Guest permissions updated", "permissions": GUEST_PERMISSIONS})
