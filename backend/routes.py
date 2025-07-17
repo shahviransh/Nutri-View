@@ -57,7 +57,7 @@ JWT_SECRET_KEY = secrets.token_hex(256)
 revoked_tokens = set()
 
 # Guest permission flags: read from guest_permissions.json
-with open("guest_permissions.json", "r") as f:
+with open(f"{Config.PATHFILE}/guest_permissions.json", "r") as f:
     GUEST_PERMISSIONS = json.load(f)
 
 # Define what kind of permission each route requires
