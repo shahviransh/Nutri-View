@@ -1349,8 +1349,8 @@ def get_multi_columns_and_time_range(data):
             0
         ]  # Assuming all tables have the same ID column
         
-        start_date = max(start_dates) if any(elem is not None for elem in start_dates) else None
-        end_date = min(end_dates) if any(elem is not None for elem in end_dates) else None
+        start_date = min(start_dates) if any(elem is not None for elem in start_dates) else None
+        end_date = max(end_dates) if any(elem is not None for elem in end_dates) else None
 
         # Combine all columns with date_type as first column
         columns = (
