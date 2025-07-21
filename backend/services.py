@@ -2245,6 +2245,18 @@ def convert_excels_to_db_service(excel_files, data):
 
             file_sheet_map = mapping[db_name]
             current_year = None
+            
+            def safe_append_to_sql(df, table_name, conn, if_exists="append"):
+                # Get existing table column names
+                existing_cols = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 0", conn).columns.tolist()
+
+                # Add missing columns to DataFrame with NaN values
+                for col in existing_cols:
+                    if col not in df.columns:
+                        df[col] = np.nan
+                df = df[existing_cols]
+
+                df.to_sql(table_name, conn, if_exists=if_exists, index=False)
 
             for excel_filename, sheet_list in file_sheet_map.items():
                 if excel_filename not in saved_files:
@@ -2377,22 +2389,13 @@ def convert_excels_to_db_service(excel_files, data):
                         df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
                         df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                         df.dropna(how='all', inplace=True)
-                        df.to_sql(table_name, conn, if_exists="replace", index=False)
+                        if conflict_action == "replace":
+                            df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
+                        else:
+                            safe_append_to_sql(df, table_name, conn, if_exists=conflict_action)
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
-                    
-            def safe_append_to_sql(df, table_name, conn, if_exists="append"):
-                # Get existing table column names
-                existing_cols = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 0", conn).columns.tolist()
-
-                # Add missing columns to DataFrame with NaN values
-                for col in existing_cols:
-                    if col not in df.columns:
-                        df[col] = np.nan
-                df = df[existing_cols]
-
-                df.to_sql(table_name, conn, if_exists=if_exists, index=False)
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:

@@ -1,6 +1,6 @@
 <template>
     <div :class="[theme, 'help-container']">
-        <h1>Nutri View Help Page</h1>
+        <h1>NutriView Help Page</h1>
 
         <nav class="toc">
             <h2>Table of Contents</h2>
@@ -22,7 +22,7 @@
         <section id="overview">
             <h2>Overview</h2>
             <p>
-                The Nutri View is a tool designed for exploring, analyzing, and visualizing environmental model data. It
+                The NutriView is a tool designed for exploring, analyzing, and visualizing environmental model data. It
                 supports both tabular and geospatial data formats and provides features for data filtering,
                 aggregation,
                 calculation, graphing, mapping, and exporting.
@@ -421,7 +421,7 @@
             <p>
                 The Converter page allows you to upload and convert Excel files to SQLite databases (<code>.db3</code>),
                 and shapefiles or rasters to GeoPackage (<code>.gpkg</code>) format. This helps prepare your data for
-                use in Nutri View's analysis and mapping tools.
+                use in NutriView's analysis and mapping tools.
             </p>
             <h4>How to Use</h4>
             <ol>
@@ -430,7 +430,7 @@
                 <li>Map Excel sheets to database tables and configure options as needed.</li>
                 <li>Choose how to handle table conflicts (Replace or Append).</li>
                 <li>Click <strong>Submit</strong> to upload and convert your files.</li>
-                <li>Converted files will be available for use in other sections of Nutri View.</li>
+                <li>Converted files will be available for use in other sections of NutriView.</li>
             </ol>
         </section>
 

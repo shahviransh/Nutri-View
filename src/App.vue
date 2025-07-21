@@ -10,7 +10,7 @@
     <header class="top-bar">
       <div class="title-container">
         <img src="/icon.ico" alt="App Icon" :style="{ width: '30px', height: '30px' }" />
-        <h2>Nutri View</h2>
+        <h2>NutriView</h2>
       </div>
       <div class="top-bar-buttons">
         <button class="logout-button" @click="logout">🚪 Logout</button>
