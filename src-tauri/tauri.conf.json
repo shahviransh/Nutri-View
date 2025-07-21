@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "identifier": "ca.eccc.Nutri-View",
+  "identifier": "ca.cwa.Nutri-View",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
