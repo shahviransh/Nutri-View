@@ -56,6 +56,17 @@ JWT_SECRET_KEY = secrets.token_hex(256)
 # Store revoked tokens
 revoked_tokens = set()
 
+if not os.path.exists(f"{Config.PATHFILE}/guest_permissions.json"):
+    # Create a default guest permissions file if it doesn't exist
+    default_permissions = {
+        "read": True,
+        "write": False,
+        "upload": False,
+        "download": False
+    }
+    with open(f"{Config.PATHFILE}/guest_permissions.json", "w") as f:
+        json.dump(default_permissions, f)
+
 # Guest permission flags: read from guest_permissions.json
 with open(f"{Config.PATHFILE}/guest_permissions.json", "r") as f:
     GUEST_PERMISSIONS = json.load(f)
