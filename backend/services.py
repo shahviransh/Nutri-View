@@ -1195,7 +1195,7 @@ def load_alias_mapping(folder_tree):
         # Extract the table name from the path
         table = os.path.basename(table).replace(".db3", "")
 
-        query = f"SELECT * FROM {table}"
+        query = f"SELECT * FROM '{table}'"
         df = pd.read_sql_query(query, conn)
 
         for _, row in df.iterrows():
@@ -1248,7 +1248,7 @@ def get_columns_and_time_range(db_path, table_name):
         ]:
             if date_col in columns:
                 df = pd.read_sql_query(
-                    f"SELECT {date_col} FROM {real_table_name}", conn
+                    f"SELECT {date_col} FROM '{real_table_name}'", conn
                 )
                 if date_col in ["Time", "Date"]:
                     df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
@@ -1265,7 +1265,7 @@ def get_columns_and_time_range(db_path, table_name):
         id_column = next((col for col in columns if "ID" in col), None)
         ids = []
         if id_column:
-            id_query = f"SELECT DISTINCT {id_column} FROM {real_table_name}"
+            id_query = f"SELECT DISTINCT {id_column} FROM '{real_table_name}'"
             id_df = pd.read_sql_query(id_query, conn)
             ids = id_df[id_column].tolist()
 
@@ -2248,7 +2248,7 @@ def convert_excels_to_db_service(excel_files, data):
             
             def safe_append_to_sql(df, table_name, conn, if_exists="append"):
                 # Get existing table column names
-                existing_cols = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 0", conn).columns.tolist()
+                existing_cols = pd.read_sql(f"SELECT * FROM '{table_name}' LIMIT 0", conn).columns.tolist()
 
                 # Add missing columns to DataFrame with NaN values
                 for col in existing_cols:
