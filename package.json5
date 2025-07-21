@@ -48,7 +48,7 @@
   },
   // "main": "electron/main.js",
   // "build": {
-  //   "appId": "ca.eccc.Nutri-View",
+  //   "appId": "ca.cwa.Nutri-View",
   //   "productName": "Nutri-View",
   //   "directories": {
   //     "buildResources": "build",
