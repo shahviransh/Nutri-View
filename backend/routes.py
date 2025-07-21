@@ -59,7 +59,7 @@ revoked_tokens = set()
 if not os.path.exists(f"{Config.PATHFILE}/guest_permissions.json"):
     # Create a default guest permissions file if it doesn't exist
     default_permissions = {
-        "read": True,
+        "read": False,
         "write": False,
         "upload": False,
         "download": False
