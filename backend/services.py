@@ -2386,6 +2386,7 @@ def convert_excels_to_db_service(excel_files, data):
                     else:
                         excel_filename_org = os.path.splitext(excel_filename)[0]
                         table_name = f"{excel_filename_org}_{sheet_name}".strip().replace(" ", "_")
+                        df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
                         df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
                         df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                         df.dropna(how='all', inplace=True)
