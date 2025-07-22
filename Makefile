@@ -20,7 +20,7 @@ python:
 	@echo "Building Python backend..."
 	@call pyinstaller backend/apppy.py -y --distpath backend/ --specpath backend/ --workpath backend/build --name apppy \
 	--add-data "$(USERPROFILE)/miniconda3/envs/venv/Library/share/proj;Library/share/proj" \
-	--hidden-import=pyogrio._geometry --hidden-import=pyogrio._io --collect-data=numpy
+	--hidden-import=sklearn._cyutility --collect-data=sklearn --collect-data=numpy
 
 # Build Electron or Tauri based on argument
 build:
