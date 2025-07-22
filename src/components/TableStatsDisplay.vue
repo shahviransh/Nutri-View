@@ -3,7 +3,7 @@
         <!-- Table Container with Scrollable Body -->
         <div class="table-container">
             <table class="styled-table">
-                <thead :style="{ position: 'sticky', top: 0, zIndex: 1 }">
+                <thead>
                     <tr>
                         <th v-for="column in selectedColumnsFilter" :key="column">{{ column }}</th>
                     </tr>
@@ -120,5 +120,8 @@ export default {
     width: 100%;
     padding: 4px;
     box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 </style>
