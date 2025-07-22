@@ -2326,10 +2326,11 @@ def convert_excels_to_db_service(excel_files, data):
 
                     # Determine metadata
                     excel_filename_org = os.path.splitext(excel_filename)[0]
+                    excel_filename_id = excel_filename_org.split("_")[0].strip().replace(" ", "_")
                     organization = excel_filename_org.split("_")[-1].strip().replace(" ", "_")
                     table_category = sheet_name
 
-                    table_name = f"{organization}_{table_category}"
+                    table_name = f"{excel_filename_id}_{organization}_{table_category}"
 
                     df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
                     df["Organization"] = organization
@@ -2429,6 +2430,8 @@ def convert_excels_to_db_service(excel_files, data):
         # Final write of combined tables
         for db_name, db_path in results.items():
             conn = sqlite3.connect(db_path)
+            if "BMP" in db_name:
+                continue
             for table_name, df in combined_dfs.items():
                 df.dropna(how="all", inplace=True)
                 df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
