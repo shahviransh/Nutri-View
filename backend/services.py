@@ -2217,6 +2217,9 @@ def convert_excels_to_db_service(excel_files, data):
     help_entries = []
     existing_help_ids = set()
 
+    # Collect final data for all table_names to be saved at the end
+    combined_dfs = {}
+
     try:
         mapping = json.loads(mapping)
         header_mapping = json.loads(header_mapping)
@@ -2240,8 +2243,7 @@ def convert_excels_to_db_service(excel_files, data):
             # Create a new SQLite database for each mapping or use existing one
             os.makedirs(Config.BASE_DIR, exist_ok=True)
             db_path = os.path.join(Config.BASE_DIR, db_name)
-
-            conn = sqlite3.connect(db_path)
+            results[db_name] = db_path
 
             file_sheet_map = mapping[db_name]
             current_year = None
@@ -2292,8 +2294,9 @@ def convert_excels_to_db_service(excel_files, data):
 
                     # Determine correct header row
                     header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
+                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row - 1)
 
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row-1)
+                    # Fix columns
                     cols = list(df.columns)
 
                     # Remove trailing "Unnamed" columns at the end
@@ -2304,7 +2307,7 @@ def convert_excels_to_db_service(excel_files, data):
                     # Replace inner "Unnamed" column names by previous column name
                     for i in range(1, len(cols)):
                         if isinstance(cols[i], str) and cols[i].startswith("Unnamed"):
-                            cols[i] = f"{cols[i-1]}_{i}"
+                            cols[i] = f"{cols[i - 1]}_{i}"
 
                     # Reassign the fixed column names back to df
                     df.columns = [col.strip().replace(" ", "_") if isinstance(col, str) else col for col in cols]
@@ -2320,7 +2323,22 @@ def convert_excels_to_db_service(excel_files, data):
                     for col in columns_to_ffill:
                         if col in df.columns:
                             df[col] = df[col].ffill()
-                            
+
+                    # Determine metadata
+                    excel_filename_org = os.path.splitext(excel_filename)[0]
+                    organization = excel_filename_org.split("_")[-1].strip().replace(" ", "_")
+                    table_category = sheet_name
+
+                    table_name = f"{organization}_{table_category}"
+
+                    df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
+                    df["Organization"] = organization
+                    df["Source_File"] = excel_filename
+                    df["Source_Sheet"] = sheet_name
+
+                    df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
+                    df.dropna(how='all', inplace=True)
+
                     if "BMP" in db_name:
                         if not df.empty and "BMP_ID" in df.columns and "Organization" in df.columns:                  
                             # Ensure merge keys are the same dtyp
@@ -2384,22 +2402,19 @@ def convert_excels_to_db_service(excel_files, data):
                                 df_final.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
                                 df_final.dropna(subset=["BMP_ID", "Organization"], inplace=True)
                     else:
-                        excel_filename_org = os.path.splitext(excel_filename)[0]
-                        table_name = f"{excel_filename_org}_{sheet_name}".strip().replace(" ", "_")
-                        df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
-                        df["Organization"] = f"{excel_filename_org.split("_")[-1]}"
-                        df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
-                        df.dropna(how='all', inplace=True)
-                        if conflict_action == "replace":
-                            df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
+                        # Accumulate data across files per table
+                        if table_name not in combined_dfs:
+                            combined_dfs[table_name] = df
                         else:
-                            safe_append_to_sql(df, table_name, conn, if_exists=conflict_action)
+                            combined_dfs[table_name] = pd.concat([combined_dfs[table_name], df], ignore_index=True)
+                            combined_dfs[table_name].sort_values(by=["Date", "Organization"], inplace=True)
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
 
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
+                conn = sqlite3.connect(db_path)
                 df_final["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
                 # Reorder columns to ensure consistent structure
                 cols = ["Date", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
@@ -2409,16 +2424,26 @@ def convert_excels_to_db_service(excel_files, data):
                     df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
                 else:
                     safe_append_to_sql(df_final, f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action)
+                conn.close()
 
-            # Save help metadata to Help.db3
-            if help_entries:
-                help_df = pd.DataFrame(help_entries)
-                help_conn = sqlite3.connect(help_db_path)
-                help_df.to_sql("HelpMetadata", help_conn, if_exists="replace", index=False)
-                help_conn.close()
-
+        # Final write of combined tables
+        for db_name, db_path in results.items():
+            conn = sqlite3.connect(db_path)
+            for table_name, df in combined_dfs.items():
+                df.dropna(how="all", inplace=True)
+                df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
+                if conflict_action == "replace":
+                    df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
+                else:
+                    safe_append_to_sql(df, table_name, conn, if_exists=conflict_action)
             conn.close()
-            results[db_name] = db_path
+
+        # Save Help Metadata
+        if help_entries:
+            help_df = pd.DataFrame(help_entries)
+            help_conn = sqlite3.connect(help_db_path)
+            help_df.to_sql("HelpMetadata", help_conn, if_exists="replace", index=False)
+            help_conn.close()
 
         return results
 
