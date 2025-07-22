@@ -146,6 +146,7 @@ label {
 .table-container,
 .stats-container {
     max-width: 100%;
+    flex-grow: 1;
     overflow-y: auto;
     border: 1px solid #ddd;
 }
@@ -199,4 +200,58 @@ button:hover {
 button:focus {
     outline: none;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+}
+
+.filter-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-popup {
+    background: var(--bg-color, #fff);
+    color: var(--text-color, #222);
+    border-radius: 8px;
+    padding: 24px 32px;
+    min-width: 320px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+}
+
+.filter-row {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-row label {
+    min-width: 90px;
+    font-weight: bold;
+}
+
+.filter-multiselect {
+    flex: 1;
+    min-width: 200px;
+    max-width: 100%;
+}
+
+.filter-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
 }

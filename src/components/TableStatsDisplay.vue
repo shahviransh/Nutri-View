@@ -120,8 +120,5 @@ export default {
     width: 100%;
     padding: 4px;
     box-sizing: border-box;
-    position: sticky;
-    top: 0;
-    z-index: 2;
 }
 </style>
