@@ -33,8 +33,10 @@
                         <h3>Filter Columns</h3>
                         <div v-for="col in selectedColumns" :key="col" class="filter-row">
                             <label :for="'filter-' + col">{{ col }}:</label>
-                            <input :id="'filter-' + col" v-model="columnFilters[col]"
-                                placeholder="Enter values, comma separated" class="filter-input" />
+                            <Multiselect :id="'filter-' + col" v-model="columnFilters[col]"
+                                :options="uniqueColumnValues[col] || []" :multiple="true" :close-on-select="false"
+                                :clear-on-select="false" :preserve-search="true" placeholder="Select values"
+                                label="value" track-by="value" class="filter-multiselect" />
                         </div>
                         <div class="popup-actions">
                             <button @click="applyFilters">Apply</button>
@@ -68,6 +70,7 @@ import ExportConfig from "../components/ExportConfig.vue";
 import ExportTableStats from "../components/ExportTableStats.vue";
 import GraphDisplay from "../components/GraphDisplay.vue";
 import axios from 'axios';
+import Multiselect from 'vue-multiselect';
 
 export default {
     name: "Graph",
@@ -80,6 +83,7 @@ export default {
         ExportConfig,
         ExportTableStats,
         GraphDisplay,
+        Multiselect,
     },
     data() {
         return {
@@ -91,12 +95,14 @@ export default {
             showFilterPopup: false,
             columnFilters: {},
             filteredData: [],
+            uniqueColumnValues: {},
         };
     },
     watch: {
         data: {
             immediate: true,
             handler() {
+                this.computeUniqueColumnValues();
                 this.applyFilters();
             }
         },
@@ -105,8 +111,9 @@ export default {
             handler(newCols) {
                 // Initialize filters for new columns
                 newCols.forEach(col => {
-                    if (!(col in this.columnFilters)) this.columnFilters[col] = '';
+                    if (!(col in this.columnFilters)) this.columnFilters[col] = [];
                 });
+                this.computeUniqueColumnValues();
                 this.applyFilters();
             }
         }
@@ -146,6 +153,7 @@ export default {
                         statistics: JSON.stringify(this.selectedStatistics),
                         method: JSON.stringify(this.selectedMethod),
                         math_formula: this.mathFormula,
+                        filter: JSON.stringify(this.columnFilters),
                     },
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -201,6 +209,7 @@ export default {
                         graph_type: this.graphType,
                         multi_graph_type: JSON.stringify(this.multiGraphType),
                         math_formula: this.mathFormula,
+                        filter: JSON.stringify(this.columnFilters),
                     },
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -233,6 +242,18 @@ export default {
                 console.error('Error exporting data: ', error.message);
             }
         },
+        computeUniqueColumnValues() {
+            if (!this.data || !Array.isArray(this.data)) {
+                this.uniqueColumnValues = {};
+                return;
+            }
+            const values = {};
+            this.selectedColumns.forEach(col => {
+                const colValues = Array.from(new Set(this.data.map(row => row[col]).filter(v => v !== undefined && v !== null)));
+                values[col] = colValues.map(v => ({ value: v }));
+            });
+            this.uniqueColumnValues = values;
+        },
         applyFilters() {
             // Filter this.data using columnFilters and selectedColumns
             if (!this.data || !Array.isArray(this.data)) {
@@ -241,12 +262,9 @@ export default {
             }
             this.filteredData = this.data.filter(row => {
                 return this.selectedColumns.every(col => {
-                    const filter = this.columnFilters[col];
-                    if (!filter) return true;
-                    const filterValues = filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f);
-                    if (filterValues.length === 0) return true;
-                    const cellValue = String(row[col] ?? "").toLowerCase();
-                    return filterValues.some(fv => cellValue.includes(fv));
+                    const selected = this.columnFilters[col];
+                    if (!selected || selected.length === 0) return true;
+                    return selected.some(sel => row[col] === sel.value);
                 });
             });
             this.showFilterPopup = false;
@@ -255,52 +273,3 @@ export default {
 };
 </script>
 <style src="../assets/pages.css"></style>
-<style scoped>
-.filter-popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.filter-popup {
-    background: var(--bg-color, #fff);
-    color: var(--text-color, #222);
-    border-radius: 8px;
-    padding: 24px 32px;
-    min-width: 320px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
-}
-
-.filter-row {
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-}
-
-.filter-row label {
-    min-width: 90px;
-    font-weight: bold;
-}
-
-.filter-input {
-    flex: 1;
-    padding: 6px 8px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-    margin-left: 8px;
-}
-
-.popup-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-}
-</style>
