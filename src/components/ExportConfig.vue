@@ -1,6 +1,6 @@
 <template>
     <div :class="[theme, 'export-container']">
-        <div class="export-field">
+        <div class="export-field" v-if="!!window.__TAURI__"
             <label for="export-path" class="export-label">Export Path:</label>
             <input type="text" id="export-path" v-model="expPath" class="export-input" />
         </div>
