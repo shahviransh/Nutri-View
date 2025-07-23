@@ -46,7 +46,7 @@ def validate_get_data_args(request_args):
         "id": {
             "type": "string",
             "required": True,
-            "regex": r'\["\d+"(,\s*"\d+")*\]|\[\]',
+            "regex": r'\["\d+"(,\s*"\d+")*\]|\[\]|^.*$',
         },
         "id_column": {
             "type": "string",
@@ -130,7 +130,7 @@ def validate_export_data_args(request_args):
         "id": {
             "type": "string",
             "required": True,
-            "regex": r'\["\d+"(,\s*"\d+")*\]|\[\]',
+            "regex": r'\["\d+"(,\s*"\d+")*\]|\[\]|^.*$',
         },
         "id_column": {
             "type": "string",

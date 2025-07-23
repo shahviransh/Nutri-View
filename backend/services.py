@@ -508,6 +508,10 @@ def fetch_data_from_db(
             for col in columns_list
         ]
         columns = ",".join(real_columns)
+    else:
+        columns_list = pd.read_sql_query(
+            f"PRAGMA table_info('{real_table_name}')", conn
+        )["name"].tolist()
 
     # Start building the base query using real table name
     query = f"SELECT {columns if columns != 'All' else '*'} FROM '{real_table_name}'"
