@@ -5,6 +5,11 @@ from routes import register_routes
 from error_handlers import register_error_handlers
 from dotenv import load_dotenv
 import os
+import shutil
+from config import Config
+
+if os.path.exists(Config.TEMPDIR):
+    shutil.rmtree(Config.TEMPDIR)
 
 # Load environment variables
 load_dotenv()

@@ -26,15 +26,12 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from werkzeug.utils import safe_join
 import re
 import numexpr as ne
-import shutil
 
 alias_mapping = {}
 global_dbs_tables_columns = {}
 os.environ["PROJ_LIB"] = Config.PROJ_LIB
 os.environ["GDAL_DATA"] = Config.GDAL_DATA
 bmp_db_path_global = None
-if os.path.exists(Config.TEMPDIR):
-    shutil.rmtree(Config.TEMPDIR)
 os.makedirs(Config.TEMPDIR, exist_ok=True)
 
 
