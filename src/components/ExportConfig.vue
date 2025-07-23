@@ -1,6 +1,6 @@
 <template>
     <div :class="[theme, 'export-container']">
-        <div class="export-field" v-if="!!window.__TAURI__">
+        <div class="export-field" v-if="isTauri">
             <label for="export-path" class="export-label">Export Path:</label>
             <input type="text" id="export-path" v-model="expPath" class="export-input" />
         </div>
@@ -102,6 +102,9 @@ export default {
         Multiselect,
     },
     computed: {
+        isTauri() {
+            return typeof window !== "undefined" && !!window.__TAURI__;
+        },
         expPath: {
             get() {
                 return this.exportPath;
