@@ -118,6 +118,10 @@ def validate_get_data_args(request_args):
             "type": "string",
             "required": False,
         },
+        "filter": {
+            "type": "string",
+            "required": False,
+        },
     }
     return validate_request_args(schema, request_args)
 
@@ -230,6 +234,10 @@ def validate_export_data_args(request_args):
             "allowed": ["EPSG:4326", "EPSG:26917"],
         },
         "math_formula": {
+            "type": "string",
+            "required": False,
+        },
+        "filter": {
             "type": "string",
             "required": False,
         },
