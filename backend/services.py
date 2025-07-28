@@ -105,7 +105,11 @@ def fetch_data_service(data):
                             fetch_columns.add(col)
 
                 # Remove fetched columns from columns list
-                columns = list(set(columns) - set(fetch_columns)) + [date_type] + ID if columns != "All" else "All"
+                columns = (
+                    list(set(columns) - set(fetch_columns)) + [date_type] + ID
+                    if columns != "All"
+                    else "All"
+                )
 
                 if not fetch_columns:
                     # If there are no common columns, skip the table
@@ -142,9 +146,7 @@ def fetch_data_service(data):
                                 )
 
                     # Identify columns for merging; ignore columns with dash if they represent different data sources
-                    merge_on_columns = [
-                        col for col in df.columns if "ID" in col
-                    ]
+                    merge_on_columns = [col for col in df.columns if "ID" in col]
                     for col in df.columns:
                         if col in df_temp.columns and not col.startswith(
                             table["table"]
@@ -356,10 +358,10 @@ def fetch_data_service(data):
             filter_dict = json.loads(data["filter"])
             for col, values in filter_dict.items():
                 if col in df.columns and values:
-                    values_set = {d['value'] for d in values}
+                    values_set = {d["value"] for d in values}
                     # Filter the DataFrame to keep only rows where the column value is in the specified values
                     df = df[df[col].isin(values_set)]
-        
+
         # Perform time conversion and aggregation if necessary
         if "Equal" not in method and interval != "daily":
             if not date_type:
@@ -376,7 +378,6 @@ def fetch_data_service(data):
                 }
             stats_df = calculate_statistics(df, statistics, date_type)
 
-        
         # Check if the DataFrame contains only needed columns according to the Attributes in Help.db3
         if os.path.exists(safe_join(Config.BASE_DIR, "Help.db3")):
             # Connect to Help.db3 to fetch Help information
@@ -403,18 +404,28 @@ def fetch_data_service(data):
                             continue
 
                     # Filter df to include only relevant columns
-                    df = df[[col for col in df.columns if col in attributes_set or col == "Help_ID"]]
-                    
+                    df = df[
+                        [
+                            col
+                            for col in df.columns
+                            if col in attributes_set or col == "Help_ID"
+                        ]
+                    ]
+
         def replace_nan_with_none(records):
             for record in records:
                 for key, value in record.items():
-                    if (isinstance(value, float) or isinstance(value, int)) and np.isnan(value):
+                    if (
+                        isinstance(value, float) or isinstance(value, int)
+                    ) and np.isnan(value):
                         record[key] = None
             return records
-        
+
         # Return the data and statistics as dictionaries
         return {
-            "data": replace_nan_with_none(df.map(round_numeric_values).to_dict(orient="records")),
+            "data": replace_nan_with_none(
+                df.map(round_numeric_values).to_dict(orient="records")
+            ),
             "new_feature": new_feature,
             "stats": stats_df.to_dict(orient="records") if stats_df is not None else [],
             "statsColumns": stats_df.columns.tolist() if stats_df is not None else [],
@@ -709,7 +720,9 @@ def save_to_file(
                     chart = overlay_chart
                 else:
                     chart.combine(overlay_chart)
-            if not primary_axis_columns or (ID in primary_axis_columns and len(primary_axis_columns) == 1):
+            if not primary_axis_columns or (
+                ID in primary_axis_columns and len(primary_axis_columns) == 1
+            ):
                 # Add dummy series to primary y-axis if no columns are present
                 chart.add_series(
                     {
@@ -718,8 +731,8 @@ def save_to_file(
                         "values": f"Sheet1!$B$2:$B${row_count}",
                         "y2_axis": False,
                     }
-                )        
-            
+                )
+
             # Customize the chart
             chart.set_x_axis(
                 {
@@ -739,13 +752,17 @@ def save_to_file(
 
             # Configure the secondary Y axis only if it's actually needed
             if secondary_axis_columns:
-                chart.set_y2_axis({
-                    "name": "Values (Larger Values)",
-                    "major_gridlines": {"visible": True}
-                    })
+                chart.set_y2_axis(
+                    {
+                        "name": "Values (Larger Values)",
+                        "major_gridlines": {"visible": True},
+                    }
+                )
 
             # Insert the chart into the worksheet
-            worksheet.insert_chart(f"{xl_col_to_name(len(dataframe1.columns) + 1)}2", chart)
+            worksheet.insert_chart(
+                f"{xl_col_to_name(len(dataframe1.columns) + 1)}2", chart
+            )
             workbook.close()
     elif file_format in ["png", "jpg", "jpeg", "svg", "pdf"]:
         # Plot each column as a line on the same figure
@@ -936,7 +953,6 @@ def save_data_and_create_zip(geometry_and_suffixes, base_filename, file_path):
             zipf.write(file_path, arcname)
 
 
-
 def get_table_names(data):
     """
     Get the names of all tables in a SQLite (.db3) or GeoPackage (.gpkg) database.
@@ -946,7 +962,7 @@ def get_table_names(data):
         db_path = data.get("db_path")
         full_path = safe_join(Config.PATHFILE, db_path)
         tables = []
-        
+
         # For regular SQLite (.db3)
         if db_path.endswith(".db3"):
             conn = sqlite3.connect(full_path)
@@ -974,7 +990,9 @@ def get_table_names(data):
                     if name not in tables:
                         tables.append(name)
         else:
-            return {"error": "Unsupported file type. Only .db3 and .gpkg are supported."}
+            return {
+                "error": "Unsupported file type. Only .db3 and .gpkg are supported."
+            }
         return {"tables": tables}
     except Exception as e:
         return {"error": str(e)}
@@ -1053,7 +1071,9 @@ def get_files_and_folders(data):
                     files_and_folders.append(
                         {
                             "type": (
-                                "database" if file_rel_path.endswith((".db3",".gpkg")) else "file"
+                                "database"
+                                if file_rel_path.endswith((".db3", ".gpkg"))
+                                else "file"
                             ),
                             "name": file_rel_path,
                         }
@@ -1068,6 +1088,7 @@ def get_files_and_folders(data):
         return {"files_and_folders": files_and_folders}
     except Exception as e:
         return {"error": str(e)}
+
 
 def get_season_from_date(date_str):
     """Map date strings to seasons."""
@@ -1357,9 +1378,13 @@ def get_multi_columns_and_time_range(data):
         id_column = [table["id_column"] for table in multi_columns_time_range][
             0
         ]  # Assuming all tables have the same ID column
-        
-        start_date = min(start_dates) if any(elem is not None for elem in start_dates) else None
-        end_date = max(end_dates) if any(elem is not None for elem in end_dates) else None
+
+        start_date = (
+            min(start_dates) if any(elem is not None for elem in start_dates) else None
+        )
+        end_date = (
+            max(end_dates) if any(elem is not None for elem in end_dates) else None
+        )
 
         # Combine all columns with date_type as first column
         columns = (
@@ -1390,7 +1415,10 @@ def get_multi_columns_and_time_range(data):
         ]
 
         # Intersection of IDs from all tables and filter out None values
-        id_sets = [set(filter(lambda x: x is not None, table["ids"])) for table in multi_columns_time_range]
+        id_sets = [
+            set(filter(lambda x: x is not None, table["ids"]))
+            for table in multi_columns_time_range
+        ]
         ids = set.intersection(*id_sets) if id_sets else set()
 
         return {
@@ -1777,6 +1805,7 @@ def fetch_geojson_colors(data):
         "new_feature": new_feature,
     }
 
+
 def process_geospatial_data(data):
     """
     Process a geospatial file (shapefile or raster) and return GeoJSON/Tiff Image Url, bounds, and center.
@@ -1831,7 +1860,7 @@ def process_geospatial_data(data):
                 dataset = ogr.Open(file_path)
                 if dataset is None:
                     continue
-                
+
                 if layer_name:
                     layer = dataset.GetLayerByName(layer_name)
                 else:
@@ -1849,7 +1878,9 @@ def process_geospatial_data(data):
                         default_crs = "EPSG:4326"
                 else:
                     source_srs = osr.SpatialReference()
-                    source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
+                    source_srs.ImportFromEPSG(
+                        26917
+                    )  # Default UTM Zone 17N if unspecified
                     default_crs = "EPSG:26917"
 
                 target_srs = osr.SpatialReference()
@@ -1936,7 +1967,8 @@ def process_geospatial_data(data):
                 }
                 geojson_metadata = {}
                 geojson_path = os.path.join(
-                    Config.TEMPDIR, os.path.basename(layer_name or file_path) + "_output.geojson"
+                    Config.TEMPDIR,
+                    os.path.basename(layer_name or file_path) + "_output.geojson",
                 )
 
                 # Check if a GeoJSON file already exists and extract metadata
@@ -2003,7 +2035,9 @@ def process_geospatial_data(data):
                         default_crs = "EPSG:4326"
                 else:
                     source_srs = osr.SpatialReference()
-                    source_srs.ImportFromEPSG(26917)  # Default UTM Zone 17N if unspecified
+                    source_srs.ImportFromEPSG(
+                        26917
+                    )  # Default UTM Zone 17N if unspecified
                     default_crs = "EPSG:26917"
                 target_srs = osr.SpatialReference()
                 target_srs.ImportFromEPSG(4326)
@@ -2018,7 +2052,9 @@ def process_geospatial_data(data):
                         Config.TEMPDIR, os.path.basename(file_path) + "_reprojected.tif"
                     )
                     (
-                        gdal.Warp(reprojected_file_path, raster_dataset, dstSRS="EPSG:4326")
+                        gdal.Warp(
+                            reprojected_file_path, raster_dataset, dstSRS="EPSG:4326"
+                        )
                         if not os.path.exists(reprojected_file_path)
                         else None
                     )
@@ -2052,7 +2088,9 @@ def process_geospatial_data(data):
                 if not os.path.exists(output_image_path):
                     raster_data, raster_normalized, _, _ = get_raster_normalized(band)
 
-                    rgba_colored = cmap(raster_normalized)  # Apply colormap (RGBA values)
+                    rgba_colored = cmap(
+                        raster_normalized
+                    )  # Apply colormap (RGBA values)
 
                     # Convert to uint8 format (0-255)
                     rgba_image = (rgba_colored[:, :, :4] * 255).astype(np.uint8)
@@ -2078,7 +2116,9 @@ def process_geospatial_data(data):
 
                 # Save the image URL for each GeoTIFF path only if the combined bounds are not far apart
                 if overlap:
-                    image_urls.append(f"/api/geotiff/{os.path.basename(output_image_path)}")
+                    image_urls.append(
+                        f"/api/geotiff/{os.path.basename(output_image_path)}"
+                    )
             else:
                 return {
                     "error": "Unsupported file type. Only .shp and .tif/.tiff are supported."
@@ -2209,10 +2249,11 @@ def export_map_service(image, form_data):
     except Exception as e:
         return {"error": str(e)}
 
+
 def convert_excels_to_db_service(excel_files, data):
     """
     Convert Excel files into multiple SQLite databases as per user-defined mapping.
-    Each database gets its explicitly listed sheets. 
+    Each database gets its explicitly listed sheets.
     If a file appears in multiple DBs, later DBs get the remaining sheets.
     """
     mapping = data.get("mapping")
@@ -2233,7 +2274,7 @@ def convert_excels_to_db_service(excel_files, data):
         mapping = json.loads(mapping)
         header_mapping = json.loads(header_mapping)
         merged_mapping = json.loads(merged_mapping)
-        
+
         # Save all uploaded Excel files temporarily
         for file in excel_files:
             filename = file.filename
@@ -2244,7 +2285,7 @@ def convert_excels_to_db_service(excel_files, data):
         # Track used sheets per file
         for filename in saved_files:
             used_sheets[filename] = set()
-            
+
         df_final = pd.DataFrame()
 
         # Process databases in order
@@ -2256,10 +2297,12 @@ def convert_excels_to_db_service(excel_files, data):
 
             file_sheet_map = mapping[db_name]
             current_year = None
-            
+
             def safe_append_to_sql(df, table_name, conn, if_exists="append"):
                 # Get existing table column names
-                existing_cols = pd.read_sql(f"SELECT * FROM '{table_name}' LIMIT 0", conn).columns.tolist()
+                existing_cols = pd.read_sql(
+                    f"SELECT * FROM '{table_name}' LIMIT 0", conn
+                ).columns.tolist()
 
                 # Add missing columns to DataFrame with NaN values
                 for col in existing_cols:
@@ -2277,39 +2320,51 @@ def convert_excels_to_db_service(excel_files, data):
                 excel_data = pd.ExcelFile(excel_path)
                 all_sheets = set(excel_data.sheet_names)
                 # Find year from filename, "data_2023-2024.xlsx" or "data_2023-12.xlsx"
-                match = re.findall(r"\d{4}-\d{4}|\d{4}-\d{2}", excel_filename)                
+                match = re.findall(r"\d{4}-\d{4}|\d{4}-\d{2}", excel_filename)
                 if match:
                     year_range = match[0]
-                    
+
                     # Split the matched string on '-'
-                    parts = year_range.split('-')
+                    parts = year_range.split("-")
                     first_year = parts[0]
                     second_year = parts[1]
-                    
+
                     # If second_year is only 2 digits, prepend the first two digits of first_year
                     if len(second_year) == 2:
                         second_year = first_year[:2] + second_year
-                    
+
                     # Now build the date string for March 31st of second_year
                     current_year = f"{second_year}-03-31"
                 else:
                     current_year = "Unknown"
                 # Decide which sheets to include
-                target_sheets = set(sheet_list) if sheet_list else all_sheets - used_sheets[excel_filename]
+                target_sheets = (
+                    set(sheet_list)
+                    if sheet_list
+                    else all_sheets - used_sheets[excel_filename]
+                )
 
                 for sheet_name in target_sheets:
                     if sheet_name not in excel_data.sheet_names:
                         continue
 
                     # Determine correct header row
-                    header_row = header_mapping.get(sheet_name, header_mapping.get("default", 3))
-                    df = pd.read_excel(excel_data, sheet_name=sheet_name, header=header_row - 1)
+                    header_row = header_mapping.get(
+                        sheet_name, header_mapping.get("default", 3)
+                    )
+                    df = pd.read_excel(
+                        excel_data, sheet_name=sheet_name, header=header_row - 1
+                    )
 
                     # Fix columns
                     cols = list(df.columns)
 
                     # Remove trailing "Unnamed" columns at the end
-                    while cols and isinstance(cols[-1], str) and cols[-1].startswith("Unnamed"):
+                    while (
+                        cols
+                        and isinstance(cols[-1], str)
+                        and cols[-1].startswith("Unnamed")
+                    ):
                         cols.pop()
                     df = df.loc[:, cols]
 
@@ -2319,8 +2374,13 @@ def convert_excels_to_db_service(excel_files, data):
                             cols[i] = f"{cols[i - 1]}_{i}"
 
                     # Reassign the fixed column names back to df
-                    df.columns = [col.strip().replace(" ", "_") if isinstance(col, str) else col for col in cols]
-                    config = merged_mapping.get(sheet_name, merged_mapping.get("default", {}))
+                    df.columns = [
+                        col.strip().replace(" ", "_") if isinstance(col, str) else col
+                        for col in cols
+                    ]
+                    config = merged_mapping.get(
+                        sheet_name, merged_mapping.get("default", {})
+                    )
                     merged_cols = config.get("merged_columns", 0)
                     columns_to_ffill = config.get("columns", [])
 
@@ -2335,39 +2395,60 @@ def convert_excels_to_db_service(excel_files, data):
 
                     # Determine metadata
                     excel_filename_org = os.path.splitext(excel_filename)[0]
-                    excel_filename_id = excel_filename_org.split("_")[0].strip().replace(" ", "_")
-                    organization = excel_filename_org.split("_")[-1].strip().replace(" ", "_")
+                    excel_filename_id = (
+                        excel_filename_org.split("_")[0].strip().replace(" ", "_")
+                    )
+                    organization = (
+                        excel_filename_org.split("_")[-1].strip().replace(" ", "_")
+                    )
                     table_category = sheet_name
 
                     table_name = table_category
 
-                    df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
+                    df["Date"] = (
+                        datetime.strptime(current_year, "%Y-%m-%d").date()
+                        if current_year != "Unknown"
+                        else current_year
+                    )
                     df["Organization"] = organization
                     df["Source_File"] = excel_filename
                     df["Source_Sheet"] = sheet_name
 
-                    df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
-                    df.dropna(how='all', inplace=True)
+                    df.replace(
+                        [r"^\s*$", r"(?i)^nan$"], np.nan, regex=True, inplace=True
+                    )
+                    df.dropna(how="all", inplace=True)
 
                     if "BMP" in db_name:
-                        if not df.empty and "BMP_ID" in df.columns and "Organization" in df.columns:                  
+                        if (
+                            not df.empty
+                            and "BMP_ID" in df.columns
+                            and "Organization" in df.columns
+                        ):
                             # Ensure merge keys are the same dtyp
                             df["Organization"] = df["Organization"].astype(str)
                             df["BMP_ID"] = df["BMP_ID"].astype(str)
-                            valid_organizations = list(set(
-                                df['Organization'].dropna()
-                            ))
+                            valid_organizations = list(set(df["Organization"].dropna()))
                             valid_organizations = [
-                                org for org in valid_organizations if org.lower() != "nan" and org.strip() != ""
-                            ]                            
+                                org
+                                for org in valid_organizations
+                                if org.lower() != "nan" and org.strip() != ""
+                            ]
                             if valid_organizations:
-                                help_id = f"{valid_organizations[0]}_{sheet_name.strip()}"
-                            
+                                help_id = (
+                                    f"{valid_organizations[0]}_{sheet_name.strip()}"
+                                )
+
                             # Create a metrics dictionary for numeric columns
-                            float_to_decimal_4 = {"Surface_Area", "Drainage_Area", "Acres", "Implementation Area"}
+                            float_to_decimal_4 = {
+                                "Surface_Area",
+                                "Drainage_Area",
+                                "Acres",
+                                "Implementation Area",
+                            }
                             float_to_integer = {"Wetland_Volume", "Volume"}
 
-                            metrics = {}                            
+                            metrics = {}
                             for col in df.columns:
                                 if any(sub in col for sub in float_to_decimal_4):
                                     # Float column, keep to 4 decimals
@@ -2379,16 +2460,20 @@ def convert_excels_to_db_service(excel_files, data):
                                     df[col] = df[col].round().astype("Int64")
                                     df[col] = df[col].astype(object)
                             if help_id not in existing_help_ids:
-                                help_entries.append({
-                                    "Help_ID": help_id,
-                                    "Attributes": json.dumps(df.columns.tolist()+["Date"]),
-                                    "Metrics": json.dumps(metrics),
-                                })
+                                help_entries.append(
+                                    {
+                                        "Help_ID": help_id,
+                                        "Attributes": json.dumps(
+                                            df.columns.tolist() + ["Date"]
+                                        ),
+                                        "Metrics": json.dumps(metrics),
+                                    }
+                                )
                                 existing_help_ids.add(help_id)
                             df["Help_ID"] = help_id
                             if df_final.empty:
                                 df_final = df
-                            else:                         
+                            else:
                                 # Merge with the final DataFrame on BMP_ID and Organization
                                 merged = pd.merge(
                                     df_final,
@@ -2396,28 +2481,46 @@ def convert_excels_to_db_service(excel_files, data):
                                     how="outer",
                                     left_on=["BMP_ID", "Organization"],
                                     right_on=["BMP_ID", "Organization"],
-                                    suffixes=("_x", "_y")
+                                    suffixes=("_x", "_y"),
                                 )
 
                                 # Automatically resolve conflicts by prioritizing _x columns and dropping _y
                                 for col in merged.columns:
-                                    if col.endswith("_x") and col[:-2] + "_y" in merged.columns:
+                                    if (
+                                        col.endswith("_x")
+                                        and col[:-2] + "_y" in merged.columns
+                                    ):
                                         base = col[:-2]
-                                        merged[base] = merged[col].where(merged[col].notna(), merged[base + "_y"])
-                                        merged.drop([col, base + "_y"], axis=1, inplace=True)
+                                        merged[base] = merged[col].where(
+                                            merged[col].notna(), merged[base + "_y"]
+                                        )
+                                        merged.drop(
+                                            [col, base + "_y"], axis=1, inplace=True
+                                        )
 
                                 df_final = merged
-                                
+
                                 # Replace empty strings with NaN and drop empty rows
-                                df_final.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
-                                df_final.dropna(subset=["BMP_ID", "Organization"], inplace=True)
+                                df_final.replace(
+                                    [r"^\s*$", r"(?i)^nan$"],
+                                    np.nan,
+                                    regex=True,
+                                    inplace=True,
+                                )
+                                df_final.dropna(
+                                    subset=["BMP_ID", "Organization"], inplace=True
+                                )
                     else:
                         # Accumulate data across files per table
                         if table_name not in combined_dfs:
                             combined_dfs[table_name] = df
                         else:
-                            combined_dfs[table_name] = pd.concat([combined_dfs[table_name], df], ignore_index=True)
-                            combined_dfs[table_name].sort_values(by=["Date", "Organization"], inplace=True)
+                            combined_dfs[table_name] = pd.concat(
+                                [combined_dfs[table_name], df], ignore_index=True
+                            )
+                            combined_dfs[table_name].sort_values(
+                                by=["Date", "Organization"], inplace=True
+                            )
 
                     # Mark sheet as used
                     used_sheets[excel_filename].add(sheet_name)
@@ -2425,15 +2528,39 @@ def convert_excels_to_db_service(excel_files, data):
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
                 conn = sqlite3.connect(db_path)
-                df_final["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
+                df_final["Date"] = (
+                    datetime.strptime(current_year, "%Y-%m-%d").date()
+                    if current_year != "Unknown"
+                    else current_year
+                )
                 # Reorder columns to ensure consistent structure
-                cols = ["Date", "BMP_ID", "Organization", "Watershed", "Subwatershed", "BMP_Type", "Field_ID"]
+                cols = [
+                    "Date",
+                    "BMP_ID",
+                    "Organization",
+                    "Watershed",
+                    "Subwatershed",
+                    "BMP_Type",
+                    "Field_ID",
+                ]
                 cols = [c for c in cols if c in df_final.columns]
-                df_final = df_final[cols + [c for c in df_final.columns if c not in cols]]
+                df_final = df_final[
+                    cols + [c for c in df_final.columns if c not in cols]
+                ]
                 if conflict_action == "replace":
-                    df_final.to_sql(f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action, index=False)
+                    df_final.to_sql(
+                        f"{os.path.splitext(db_name)[0]}",
+                        conn,
+                        if_exists=conflict_action,
+                        index=False,
+                    )
                 else:
-                    safe_append_to_sql(df_final, f"{os.path.splitext(db_name)[0]}", conn, if_exists=conflict_action)
+                    safe_append_to_sql(
+                        df_final,
+                        f"{os.path.splitext(db_name)[0]}",
+                        conn,
+                        if_exists=conflict_action,
+                    )
                 conn.close()
 
         # Final write of combined tables
@@ -2443,7 +2570,7 @@ def convert_excels_to_db_service(excel_files, data):
                 continue
             for table_name, df in combined_dfs.items():
                 df.dropna(how="all", inplace=True)
-                df.replace([r'^\s*$', r'(?i)^nan$'], np.nan, regex=True, inplace=True)
+                df.replace([r"^\s*$", r"(?i)^nan$"], np.nan, regex=True, inplace=True)
                 if conflict_action == "replace":
                     df.to_sql(table_name, conn, if_exists=conflict_action, index=False)
                 else:
@@ -2461,13 +2588,14 @@ def convert_excels_to_db_service(excel_files, data):
 
     except Exception as e:
         return {"error": str(e)}
-    
+
+
 def convert_to_gpkg_service(uploaded_files):
     """
     Convert uploaded shapefiles or GeoTIFF files to GeoPackage format.
     """
     import subprocess
-    
+
     # Clear existing temp files (optional safety)
     for f in os.listdir(Config.TEMPDIR):
         try:
@@ -2487,19 +2615,19 @@ def convert_to_gpkg_service(uploaded_files):
 
     output_gpkg = os.path.join(Config.BASE_DIR, "Geospatial/GeoDB.gpkg")
     first_layer_created = False
-    
+
     def delete_layer_if_exists(gpkg_path, layer_name):
         # Check if layer exists
         result = subprocess.run(
             ["ogrinfo", gpkg_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
         )
         if layer_name in result.stdout:
-            subprocess.run([
-                "ogrinfo", gpkg_path, "-sql", f"DROP TABLE \"{layer_name}\""
-            ], check=True)
+            subprocess.run(
+                ["ogrinfo", gpkg_path, "-sql", f'DROP TABLE "{layer_name}"'], check=True
+            )
 
     try:
         for base in base_names:
@@ -2510,34 +2638,60 @@ def convert_to_gpkg_service(uploaded_files):
                 delete_layer_if_exists(output_gpkg, base)
                 if not first_layer_created:
                     # Create new gpkg from first shapefile
-                    subprocess.run(["ogr2ogr", "-f", "GPKG", output_gpkg, shp_path], check=True)
+                    subprocess.run(
+                        ["ogr2ogr", "-f", "GPKG", output_gpkg, shp_path], check=True
+                    )
                     first_layer_created = True
                 else:
                     # Append to existing gpkg
-                    subprocess.run([
-                        "ogr2ogr", "-f", "GPKG", "-update", "-append",
-                        output_gpkg, shp_path,
-                        "-nln", base
-                    ], check=True)
+                    subprocess.run(
+                        [
+                            "ogr2ogr",
+                            "-f",
+                            "GPKG",
+                            "-update",
+                            "-append",
+                            output_gpkg,
+                            shp_path,
+                            "-nln",
+                            base,
+                        ],
+                        check=True,
+                    )
             elif os.path.exists(tif_path):
                 layer_name = base
                 delete_layer_if_exists(output_gpkg, layer_name)
                 if not first_layer_created:
                     # Create new gpkg from first raster
-                    subprocess.run([
-                        "gdal_translate", "-of", "GPKG",
-                        tif_path, output_gpkg,
-                        "-co", f"RASTER_TABLE={layer_name}"
-                    ], check=True)
+                    subprocess.run(
+                        [
+                            "gdal_translate",
+                            "-of",
+                            "GPKG",
+                            tif_path,
+                            output_gpkg,
+                            "-co",
+                            f"RASTER_TABLE={layer_name}",
+                        ],
+                        check=True,
+                    )
                     first_layer_created = True
                 else:
                     # Append raster to existing gpkg
-                    subprocess.run([
-                        "gdal_translate", "-of", "GPKG",
-                        tif_path, output_gpkg,
-                        "-co", f"RASTER_TABLE={layer_name}",
-                        "-co", "APPEND_SUBDATASET=YES"
-                    ], check=True)
+                    subprocess.run(
+                        [
+                            "gdal_translate",
+                            "-of",
+                            "GPKG",
+                            tif_path,
+                            output_gpkg,
+                            "-co",
+                            f"RASTER_TABLE={layer_name}",
+                            "-co",
+                            "APPEND_SUBDATASET=YES",
+                        ],
+                        check=True,
+                    )
 
         return output_gpkg
 
