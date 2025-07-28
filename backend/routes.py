@@ -9,7 +9,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt,
     verify_jwt_in_request,
-    get_jwt_identity
+    get_jwt_identity,
 )
 from functools import wraps
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ from validate import (
     validate_geospatial_args,
     validate_export_map_args,
     validate_serve_tif_args,
-    validate_convert_excels_to_db_args
+    validate_convert_excels_to_db_args,
 )
 import json
 
@@ -62,7 +62,7 @@ if not os.path.exists(f"{Config.PATHFILE}/guest_permissions.json"):
         "read": False,
         "write": False,
         "upload": False,
-        "download": False
+        "download": False,
     }
     with open(f"{Config.PATHFILE}/guest_permissions.json", "w") as f:
         json.dump(default_permissions, f)
@@ -93,11 +93,12 @@ GUEST_PASSWORD = os.getenv(
     "GUEST_PASSWORD", bcrypt.hashpw("guest".encode(), bcrypt.gensalt()).decode()
 )
 
+
 def register_routes(app, cache):
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 3600  # 1 hour
     jwt = JWTManager(app)
-    
+
     def require_permission(permission_type):
         def decorator(fn):
             @wraps(fn)
@@ -113,11 +114,16 @@ def register_routes(app, cache):
                     if allowed:
                         return fn(*args, **kwargs)
                     else:
-                        return jsonify({"error": f"Guest does not have '{permission_type}' permission"})
+                        return jsonify(
+                            {
+                                "error": f"Guest does not have '{permission_type}' permission"
+                            }
+                        )
 
                 return jsonify({"error": "Invalid role"}), 403
 
             return wrapper
+
         return decorator
 
     @app.route("/api/login", methods=["POST"])
@@ -132,14 +138,20 @@ def register_routes(app, cache):
         if not username or not password:
             return jsonify({"error": "Missing username or password"}), 400
 
-        if username == ADMIN_USERNAME and bcrypt.checkpw(password.encode(), ADMIN_PASSWORD.encode()):
+        if username == ADMIN_USERNAME and bcrypt.checkpw(
+            password.encode(), ADMIN_PASSWORD.encode()
+        ):
             role = "admin"
-        elif username == GUEST_USERNAME and bcrypt.checkpw(password.encode(), GUEST_PASSWORD.encode()):
+        elif username == GUEST_USERNAME and bcrypt.checkpw(
+            password.encode(), GUEST_PASSWORD.encode()
+        ):
             role = "guest"
         else:
             return jsonify({"error": "Invalid credentials"}), 401
 
-        access_token = create_access_token(identity=username, additional_claims={"role": role})
+        access_token = create_access_token(
+            identity=username, additional_claims={"role": role}
+        )
         return jsonify(access_token=access_token)
 
     @app.route("/api/logout", methods=["POST"])
@@ -167,7 +179,7 @@ def register_routes(app, cache):
             return jsonify({"valid": True}), 200
         except Exception as e:
             return jsonify({"valid": False}), 401
-        
+
     @app.route("/api/guest-permissions", methods=["GET", "POST"])
     @jwt_required()
     def edit_guest_permissions():
@@ -186,8 +198,10 @@ def register_routes(app, cache):
         # Save the updated permissions so even server restarts will keep the changes
         with open(f"{Config.PATHFILE}/guest_permissions.json", "w") as f:
             json.dump(GUEST_PERMISSIONS, f)
-        
-        return jsonify({"message": "Guest permissions updated", "permissions": GUEST_PERMISSIONS})
+
+        return jsonify(
+            {"message": "Guest permissions updated", "permissions": GUEST_PERMISSIONS}
+        )
 
     @app.route("/api/upload_folder", methods=["POST"])
     @jwt_required()
@@ -359,7 +373,7 @@ def register_routes(app, cache):
         # Ensure the file has a .tif or .tiff extension
         if not (filename.lower().endswith((".tif", ".tiff", ".png"))):
             return jsonify({"error": "Only .tif or .tiff files are allowed"})
-        
+
         # Ensure the file is in the TEMP directory
         filename = safe_join(Config.TEMPDIR, filename)
 
@@ -414,7 +428,7 @@ def register_routes(app, cache):
         return send_file(
             file_path.get("file_path"), mimetype=mimetype, as_attachment=True
         )
-    
+
     @app.route("/api/convert_excels_to_db", methods=["POST"])
     @jwt_required()
     @require_permission("write")
@@ -427,7 +441,7 @@ def register_routes(app, cache):
 
         if not excel_files:
             return jsonify({"error": "Files and mapping data required"})
-        
+
         validatetion_response = validate_convert_excels_to_db_args(data)
         if validatetion_response.get("error", None):
             return jsonify(validatetion_response)
@@ -450,7 +464,7 @@ def register_routes(app, cache):
             return jsonify({"error": "No files uploaded"})
 
         converted_files = convert_to_gpkg_service(uploaded_files)
-        
+
         # Return single GPKG file path
         return jsonify(converted_files)
 

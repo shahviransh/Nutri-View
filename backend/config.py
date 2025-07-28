@@ -2,6 +2,7 @@ import os
 import sys
 from platformdirs import user_data_dir
 
+
 class Config:
     PATHFILE_EXPORT = PATHFILE = (
         sys._MEIPASS

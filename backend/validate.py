@@ -9,7 +9,8 @@ def validate_request_args(schema, request_args):
     Validates the request arguments using Cerberus and applies additional security checks.
     """
     validator = Validator(schema)
-    data = {key: request_args.get(key) for key in schema.keys() if key in request_args}
+    data = {key: request_args.get(key)
+            for key in schema.keys() if key in request_args}
 
     if not validator.validate(data):
         return {
@@ -61,7 +62,7 @@ def validate_get_data_args(request_args):
         "end_date": {
             "type": "string",
             "required": True,
-            "regex": r"^\d*|^\d{4}-\d{2}-\d{2}$|^$"
+            "regex": r"^\d*|^\d{4}-\d{2}-\d{2}$|^$",
         },
         "date_type": {
             "type": "string",
@@ -112,7 +113,7 @@ def validate_get_data_args(request_args):
         "spatial_scale": {
             "type": "string",
             "required": False,
-            "allowed": ["subarea", "field", "reach", "subbasin", "unknown"]
+            "allowed": ["subarea", "field", "reach", "subbasin", "unknown"],
         },
         "math_formula": {
             "type": "string",
@@ -226,7 +227,7 @@ def validate_export_data_args(request_args):
         "spatial_scale": {
             "type": "string",
             "required": False,
-            "allowed": ["subarea", "field", "reach", "subbasin", "unknown"]
+            "allowed": ["subarea", "field", "reach", "subbasin", "unknown"],
         },
         "default_crs": {
             "type": "string",
@@ -294,6 +295,7 @@ def validate_serve_tif_args(filename):
         return {"error": "Invalid path specified for the GeoTIFF file."}
     return {"filename": filename}
 
+
 def validate_convert_excels_to_db_args(data):
     schema = {
         "mapping": {"type": "string", "required": True},
@@ -306,6 +308,7 @@ def validate_convert_excels_to_db_args(data):
         },
     }
     return validate_request_args(schema, data)
+
 
 def getUserValidationError(errors):
     """
