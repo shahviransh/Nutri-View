@@ -90,6 +90,26 @@ export default {
             uniqueColumnValues: {},
         };
     },
+    watch: {
+        data: {
+            immediate: true,
+            handler() {
+                this.computeUniqueColumnValues();
+                this.applyFilters();
+            }
+        },
+        selectedColumns: {
+            immediate: true,
+            handler(newCols) {
+                // Initialize filters for new columns
+                newCols.forEach(col => {
+                    if (!(col in this.columnFilters)) this.columnFilters[col] = [];
+                });
+                this.computeUniqueColumnValues();
+                this.applyFilters();
+            }
+        }
+    },
     computed: {
         ...mapState(["selectedDbsTables", "selectedColumns", "allSelectedColumns", "mathFormula", "selectedIds", "idColumn", "dateRange", "selectedInterval", "selectedStatistics", "selectedMethod", "exportColumns", "exportIds", "exportDate", "exportInterval", "dateType", "exportPath", "exportFilename", "exportFormat", "exportOptions", "theme"]),
     },
@@ -233,6 +253,7 @@ export default {
                 this.filteredData = [];
                 return;
             }
+            console.log(this.selectedColumns);
             this.filteredData = this.data.filter(row => {
                 return this.selectedColumns.every(col => {
                     const selected = this.columnFilters[col];
