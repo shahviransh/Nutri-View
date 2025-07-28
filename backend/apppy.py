@@ -11,6 +11,8 @@ from config import Config
 if os.path.exists(Config.TEMPDIR):
     shutil.rmtree(Config.TEMPDIR)
 
+os.makedirs(Config.TEMPDIR, exist_ok=True)
+
 # Load environment variables
 load_dotenv()
 
