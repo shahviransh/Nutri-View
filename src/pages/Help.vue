@@ -170,6 +170,21 @@
                     CSV/TXT
                     formats).</li>
             </ul>
+
+            <h4>Filtering Columns by Value (Dropdown)</h4>
+            <ul>
+                <li>Click the <strong>Filter Columns</strong> button in the Settings Panel (top right of Project/Table
+                    or Graph section).</li>
+                <li>A popup will appear with a dropdown for each selected column.</li>
+                <li>For each column, use the dropdown to select one or more values to filter by. You can select multiple
+                    values per column.</li>
+                <li>Click <strong>Apply</strong> to filter the data table or graph to only show rows matching your
+                    selections.</li>
+                <li>Click <strong>Close</strong> to exit the filter popup without applying changes.</li>
+                <li>To clear a filter, deselect all values for that column.</li>
+                <li>Filtering is available in both Project/Table and Graph sections and works independently for each
+                    view.</li>
+            </ul>
         </section>
 
         <section id="project-table-section">
