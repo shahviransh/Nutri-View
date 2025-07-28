@@ -32,7 +32,6 @@ global_dbs_tables_columns = {}
 os.environ["PROJ_LIB"] = Config.PROJ_LIB
 os.environ["GDAL_DATA"] = Config.GDAL_DATA
 bmp_db_path_global = None
-os.makedirs(Config.TEMPDIR, exist_ok=True)
 
 
 def fetch_data_service(data):
@@ -352,6 +351,15 @@ def fetch_data_service(data):
             except Exception as e:
                 return {"error": f"Error evaluating formula: {str(e)}"}
 
+        # Filter each df column for specific values from dict
+        if "filter" in data:
+            filter_dict = json.loads(data["filter"])
+            for col, values in filter_dict.items():
+                if col in df.columns and values:
+                    values_set = {d['value'] for d in values}
+                    # Filter the DataFrame to keep only rows where the column value is in the specified values
+                    df = df[df[col].isin(values_set)]
+        
         # Perform time conversion and aggregation if necessary
         if "Equal" not in method and interval != "daily":
             if not date_type:
@@ -2331,7 +2339,7 @@ def convert_excels_to_db_service(excel_files, data):
                     organization = excel_filename_org.split("_")[-1].strip().replace(" ", "_")
                     table_category = sheet_name
 
-                    table_name = f"{excel_filename_id}_{organization}_{table_category}"
+                    table_name = table_category
 
                     df["Date"] = datetime.strptime(current_year, "%Y-%m-%d").date() if current_year != "Unknown" else current_year
                     df["Organization"] = organization
