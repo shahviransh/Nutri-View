@@ -427,7 +427,11 @@ def fetch_data_service(data):
                 df.map(round_numeric_values).to_dict(orient="records")
             ),
             "new_feature": new_feature,
-            "stats": stats_df.to_dict(orient="records") if stats_df is not None else [],
+            "stats": (
+                replace_nan_with_none(stats_df.to_dict(orient="records"))
+                if stats_df is not None
+                else []
+            ),
             "statsColumns": stats_df.columns.tolist() if stats_df is not None else [],
         }
     except Exception as e:
