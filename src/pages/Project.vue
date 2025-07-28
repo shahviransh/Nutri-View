@@ -22,6 +22,10 @@
                     <ExportTableStats />
                     <button @click="fetchData">Fetch Data</button>
                     <button @click="exportData">Export Data</button>
+                    <!-- Button to open the filter popup -->
+                    <button @click="showFilterPopup = true">
+                        Filter Columns
+                    </button>
                 </span>
                 <!-- Filter Popup -->
                 <div v-if="showFilterPopup" class="filter-popup-overlay" @click.self="showFilterPopup = false">
