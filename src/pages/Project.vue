@@ -143,6 +143,7 @@ export default {
                 this.data = response.data.data;
                 this.stats = response.data.stats;
                 this.statsColumns = response.data.statsColumns;
+                this.applyFilters();
                 if (response.data.error) {
                     alert('Error fetching data: ' + response.data.error);
                     return;
