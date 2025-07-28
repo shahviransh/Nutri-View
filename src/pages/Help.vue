@@ -60,9 +60,7 @@
             <h4>Folder Selection & Navigation (Left Panel)</h4>
             <ul>
                 <li>The leftmost panel displays a tree structure of your selected model folder.</li>
-                <li>Click the <strong>📁 Select Folder</strong> button to choose the root folder containing your
-                    IMWEBs
-                    model data.
+                <li>Click the <strong>📁 Select Folder</strong> button to choose the root folder containing your model data.
                     <ul>
                         <li><strong>Desktop App:</strong> Opens a system dialog to select a folder directly on your
                             computer.</li>
