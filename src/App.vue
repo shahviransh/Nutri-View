@@ -154,8 +154,7 @@ export default {
             });
 
             // Show loading symbol circular with saying uploading folder please wait
-            // If taking lonker than 60 seconds, show plesae wait longer folder is big
-            console.log("Upload response: ", response.data);
+            // If taking longer than 60 seconds, show please wait longer folder is big
 
             if (response.data.error) {
               clearTimeout(timeout);
