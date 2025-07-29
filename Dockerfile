@@ -27,4 +27,4 @@ ENV FLASK_RUN_PORT=5000
 EXPOSE 5000
 
 # Start the app using conda env and use Render’s env vars
-CMD ["conda", "run", "--no-capture-output", "-n", "venv", "flask", "run", "--host=0.0.0.0"]
+CMD ["conda", "run", "--no-capture-output", "-n", "venv", "python", "apppy.py"]
