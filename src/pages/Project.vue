@@ -253,7 +253,6 @@ export default {
                 this.filteredData = [];
                 return;
             }
-            console.log(this.selectedColumns);
             this.filteredData = this.data.filter(row => {
                 return this.selectedColumns.every(col => {
                     const selected = this.columnFilters[col];
