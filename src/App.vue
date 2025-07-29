@@ -149,28 +149,37 @@ export default {
             }, 30000); // 30 seconds
 
             // Send the form data with the files and folder structure to the backend
-            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/upload_folder`, formData, {
-              headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-
-            // Show loading symbol circular with saying uploading folder please wait
-            // If taking longer than 60 seconds, show please wait longer folder is big
-
-            if (response.data.error) {
-              clearTimeout(timeout);
-              this.isUploading = false;
-              alert("Error saving folder and files: " + response.data.error);
-            } else {
-              clearTimeout(timeout);
-              this.isUploading = false;
-              this.pushMessage({
-                message: `Folder and files saved successfully!`,
-                type: "success"
+            try {
+              const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/upload_folder`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
               });
-            }
 
-            this.updateModelFolder(modelFolder);
-            this.fetchFolderTree();
+              // Show loading symbol circular with saying uploading folder please wait
+              // If taking longer than 60 seconds, show please wait longer folder is big
+
+              if (response.data.error) {
+                clearTimeout(timeout);
+                this.isUploading = false;
+                alert("Error saving folder and files: " + response.data.error);
+              } else {
+                clearTimeout(timeout);
+                this.isUploading = false;
+                this.pushMessage({
+                  message: `Folder and files saved successfully!`,
+                  type: "success"
+                });
+              }
+
+              this.updateModelFolder(modelFolder);
+              this.fetchFolderTree();
+            } catch (error) {
+              clearTimeout(timeout);
+              this.isUploading = false;
+              alert("Upload failed: " + error.response.data.error);
+            }
           };
 
           // Trigger the file input to open the folder selection dialog
@@ -178,8 +187,6 @@ export default {
 
         }
       } catch (error) {
-        clearTimeout(timeout);
-        this.isUploading = false;
         console.error("Error selecting folder: ", error);
       }
     },
