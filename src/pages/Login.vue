@@ -10,7 +10,7 @@
                     <legend class="panel-title">Sign in to NutriView</legend>
                     <form @submit.prevent="login(false)">
                         <div class="formGroup">
-                            <label for="username"><b>Email address:</b></label>
+                            <label for="username"><b>Email address/Username:</b></label>
                             <input id="username" type="text" v-model="username" class="formControl" maxlength="50"
                                 required autocomplete="username" />
                         </div>
