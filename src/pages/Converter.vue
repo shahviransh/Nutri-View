@@ -162,7 +162,6 @@ export default {
             ],
             headerMapping: [{ sheet: "default", row: 4 },
             { sheet: "1. EOF P Reductions", row: 3 },
-            { sheet: "Sheet1", row: 3 },
             ],
             mergedMapping: [{
                 sheet: "1. EOF P Reductions",
