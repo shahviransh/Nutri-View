@@ -209,10 +209,18 @@ const store = createStore({
         ];
         return;
       }
-      state.selectedColumns =
-        columns === "All"
-          ? (state.exportColumns = state.columns)
-          : (state.exportColumns = columns);
+      if (columns === "All") {
+        state.selectedColumns = state.exportColumns = state.columns;
+      } else {
+        state.selectedColumns = state.exportColumns = columns;
+        if (
+          state.allSelectedColumns &&
+          Array.isArray(columns) &&
+          columns.length !== state.columns.length
+        ) {
+          state.allSelectedColumns = false;
+        }
+      }
     },
     SET_SELECTED_IDS(state, ids) {
       state.selectedIds = ids;
