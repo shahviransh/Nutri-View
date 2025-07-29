@@ -178,7 +178,8 @@ export default {
             } catch (error) {
               clearTimeout(timeout);
               this.isUploading = false;
-              alert("Upload failed: " + error.response.data.error);
+              const message = error.response?.data?.error || "An error occurred while uploading the folder.";
+              alert("Upload failed: " + message);
             }
           };
 
