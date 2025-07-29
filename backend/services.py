@@ -247,7 +247,7 @@ def fetch_data_service(data):
                 field_values_df.rename(columns={"FieldId": ID}, inplace=True)
 
                 # Replace the original DataFrame's values with the calculated field values
-                df = field_values_df.copy().map(round_numeric_values)
+                df = round_df_except_latlon(field_values_df.copy())
 
             except Exception as e:
                 return {"error": f"Error processing field values: {str(e)}"}
@@ -421,7 +421,7 @@ def fetch_data_service(data):
                     ) and np.isnan(value):
                         record[key] = None
             return records
-        
+
         # Order the columns in the DataFrame based on the original columns
         if original_columns:
             df = df[original_columns]
@@ -429,7 +429,7 @@ def fetch_data_service(data):
         # Return the data and statistics as dictionaries
         return {
             "data": replace_nan_with_none(
-                df.map(round_numeric_values).to_dict(orient="records")
+                round_df_except_latlon(df).to_dict(orient="records")
             ),
             "new_feature": new_feature,
             "stats": (
@@ -573,7 +573,7 @@ def fetch_data_from_db(
     ]
     df.columns = alias_columns
 
-    return df.map(round_numeric_values)
+    return round_df_except_latlon(df)
 
 
 # Helper function to save data to CSV or text formats
@@ -1161,20 +1161,32 @@ def aggregate_data(df, interval, method, date_type, month, season):
         resampled_df[date_type] = resampled_df[date_type].dt.strftime("%Y-%m-%d")
     stats_df = calculate_statistics(resampled_df, method, date_type)
 
-    return resampled_df.map(round_numeric_values), stats_df.map(round_numeric_values)
+    return round_df_except_latlon(resampled_df), round_df_except_latlon(stats_df)
 
 
-def round_numeric_values(value):
+def round_numeric_values(value, col_name=None):
     """
     Round numeric values to 4 decimal places if they are small (less than 0.01),
     otherwise round to 2 decimal places.
     """
+    if col_name and col_name.lower() in ["longitude", "latitude"]:
+        return value
     if isinstance(value, (float, int)):  # Check if the value is a number
         if abs(value) < 0.01:  # Small values
             return round(value, 4)
         else:  # Larger values
             return round(value, 2)
     return value
+
+
+def round_df_except_latlon(df):
+    # Do not round Latitude or Longitude columns
+    skip_cols = {"latitude", "longitude"}
+    return df.apply(
+        lambda col: (
+            col if col.name.lower() in skip_cols else col.apply(round_numeric_values)
+        )
+    )
 
 
 def calculate_statistics(df, statistics, date_type):
@@ -1221,7 +1233,7 @@ def calculate_statistics(df, statistics, date_type):
     stats_df.reset_index(inplace=True)
     stats_df.rename(columns={"index": "Statistics"}, inplace=True)
 
-    return stats_df.map(round_numeric_values)
+    return round_df_except_latlon(stats_df)
 
 
 def load_alias_mapping(folder_tree):
