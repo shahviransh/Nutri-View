@@ -60,7 +60,8 @@
             <h4>Folder Selection & Navigation (Left Panel)</h4>
             <ul>
                 <li>The leftmost panel displays a tree structure of your selected model folder.</li>
-                <li>Click the <strong>📁 Select Folder</strong> button to choose the root folder containing your model data.
+                <li>Click the <strong>📁 Select Folder</strong> button to choose the root folder containing your model
+                    data.
                     <ul>
                         <li><strong>Desktop App:</strong> Opens a system dialog to select a folder directly on your
                             computer.</li>
@@ -347,9 +348,22 @@
             <ol>
                 <li>Use the <strong>Folder Selection Panel</strong> to select one or more Shapefiles
                     (<code>.shp</code>)
-                    or Raster files (<code>.tif</code>/<code>.tiff</code>).</li>
+                    or Raster files (<code>.tif</code>/<code>.tiff</code>), or a GeoPackage (<code>.gpkg</code>).</li>
+                <li>
+                    <strong>GeoPackage Layers:</strong> If you select a <code>.gpkg</code> file, you will be prompted to
+                    choose one or more layers from within the GeoPackage. Only the selected layers will be loaded and
+                    displayed on the map. This allows you to work with specific datasets inside a single GeoPackage
+                    file.
+                </li>
                 <li>Click the <strong>Fetch Map</strong> button. A "Customize Map Style" popup appears.</li>
             </ol>
+
+            <div style="margin-bottom: 1em;">
+                <strong>Important:</strong> For all maps, after clicking <strong>Layer/Shapefiles/Rasterfiles</strong>, <u>wait for the
+                    green popup message at the bottom right</u> (from the message box) that says the GeoJSON data is
+                loaded before interacting with the map. This ensures all geospatial data and layers are fully loaded and
+                ready for use.
+            </div>
 
             <h4>Customizing Map Styles (Popup)</h4>
             <ul>
