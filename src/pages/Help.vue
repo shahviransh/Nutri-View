@@ -360,8 +360,7 @@
 
             <div style="margin-bottom: 1em;">
                 <strong>Important:</strong> For all maps, after clicking <strong>Layer/Shapefiles/Rasterfiles</strong>, <u>wait for the
-                    green popup message at the bottom right</u> (from the message box) that says the GeoJSON data is
-                loaded before interacting with the map. This ensures all geospatial data and layers are fully loaded and
+                    green popup message at the bottom right</u> (from the message box) that says the GeoJSON loaded before fetching the map. This ensures all geospatial data and layers are fully loaded and
                 ready for use.
             </div>
 
