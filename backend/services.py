@@ -42,6 +42,7 @@ def fetch_data_service(data):
         columns = (
             json.loads(data.get("columns")) if data.get("columns") != "All" else "All"
         )
+        original_columns = columns if isinstance(columns, list) else []
         selected_ids = json.loads(data.get("id"))
         id_column = data.get("id_column", "ID")
         start_date = data.get("start_date")
@@ -420,6 +421,10 @@ def fetch_data_service(data):
                     ) and np.isnan(value):
                         record[key] = None
             return records
+        
+        # Order the columns in the DataFrame based on the original columns
+        if original_columns:
+            df = df[original_columns]
 
         # Return the data and statistics as dictionaries
         return {
