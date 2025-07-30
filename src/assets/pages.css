@@ -221,7 +221,10 @@ button:focus {
     border-radius: 8px;
     padding: 24px 32px;
     min-width: 320px;
+    overflow-y: auto;
+    max-height: 90vh;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+    position: relative;
 }
 
 .filter-row {
@@ -254,4 +257,8 @@ button:focus {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 18px;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-color, #fff);
+    z-index: 2;
 }
