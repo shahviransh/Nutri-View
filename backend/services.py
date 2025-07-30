@@ -140,7 +140,10 @@ def fetch_data_service(data):
                     # Case of All columns, rename columns to table-column format
                     if is_all_columns:
                         for col in df.columns:
-                            if col in df_temp.columns and col != date_type:
+                            if col in df_temp.columns and col not in [
+                                date_type,
+                                id_column,
+                            ]:
                                 df_temp.rename(
                                     columns={col: f"{table['table']}-{col}"},
                                     inplace=True,

@@ -239,7 +239,7 @@ export default {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/verify-token`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        this.isAuthenticated = response.status === 200;
+        this.isAuthenticated = response.data.valid && response.status === 200;
       } catch {
         localStorage.removeItem("token");
         this.isAuthenticated = false;
