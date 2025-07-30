@@ -1171,7 +1171,7 @@ def round_numeric_values(value, col_name=None):
     """
     if col_name and col_name.lower() in ["longitude", "latitude"]:
         return value
-    if isinstance(value, (float, int)):  # Check if the value is a number
+    if isinstance(value, (float, int)):
         if abs(value) < 0.01:  # Small values
             return round(value, 4)
         else:  # Larger values
