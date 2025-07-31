@@ -161,9 +161,6 @@
                 <li>For Project/Table, if you want to filter the statistics table, first fetch data with your desired statistics selected (without filters), then use the Filter Columns button to filter the main table. After applying filters, fetch data again to update the statistics for the filtered subset.
                 </li>
             </ul>
-            <p>
-                <strong>How filtering works:</strong> In both Project/Table and Graph, the filter popup shows dropdowns for each selected column, allowing you to filter rows by their values.
-            </p>
 
             <h4>Export Panel (Top Right)</h4>
             <ul>
