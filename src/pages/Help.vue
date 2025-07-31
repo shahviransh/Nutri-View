@@ -145,6 +145,26 @@
                     Statistics are displayed below the main data table.</li>
             </ul>
 
+            <h4>Filtering Columns by Value (Dropdown)</h4>
+            <ul>
+                <li>Click the <strong>Filter Columns</strong> button in the Settings Panel (top right of Project/Table
+                    or Graph section).</li>
+                <li>A popup will appear with a dropdown for each selected column.</li>
+                <li>For each column, use the dropdown to select one or more values to filter by. You can select multiple
+                    values per column.</li>
+                <li>Click <strong>Apply</strong> to filter the data table or graph to only show rows matching your
+                    selections.</li>
+                <li>Click <strong>Close/Outside popup</strong> to exit the filter popup without applying changes.</li>
+                <li>To clear a filter, deselect all values for that column.</li>
+                <li>Filtering is available in both Project/Table and Graph sections and works independently for each
+                    view.</li>
+                <li>For Project/Table, if you want to filter the statistics table, first fetch data with your desired statistics selected (without filters), then use the Filter Columns button to filter the main table. After applying filters, fetch data again to update the statistics for the filtered subset.
+                </li>
+            </ul>
+            <p>
+                <strong>How filtering works:</strong> In both Project/Table and Graph, the filter popup shows dropdowns for each selected column, allowing you to filter rows by their values.
+            </p>
+
             <h4>Export Panel (Top Right)</h4>
             <ul>
                 <li><strong>Export Path:</strong>
