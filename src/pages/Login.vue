@@ -82,7 +82,7 @@
             <p>If you are having trouble with the website, contact admin or use the desktop app with the same
                 functionality and features as the web app.</p>
             <p>
-                <a href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer?tab=readme-ov-file#-installation"
+                <a href="https://github.com/shahviransh/Nutri-View?tab=readme-ov-file#-installation"
                     target="_blank">
                     Click here and follow installation instructions.
                 </a>
