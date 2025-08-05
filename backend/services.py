@@ -1204,6 +1204,20 @@ def calculate_statistics(df, statistics, date_type):
     # Drop the date_type column if it exists
     df = df.drop(columns=[date_type], errors="ignore")
 
+    def safe_get_date(original_df, col, date_type, max_or_min, default=np.nan):
+        try:
+            idx = original_df[col].idxmax() if max_or_min == "max" else original_df[col].idxmin()
+            # If idx is nan or index does not exist, return default
+            if pd.isna(idx) or idx not in original_df.index:
+                return default
+            val = original_df.at[idx, date_type]
+            # If value is nan, return default
+            if pd.isna(val):
+                return default
+            return val
+        except Exception:
+            return default
+
     if "Average" in statistics:
         stats_df["Average"] = df.mean()
     if "Sum" in statistics:
@@ -1213,7 +1227,7 @@ def calculate_statistics(df, statistics, date_type):
         # Use original DataFrame to get the corresponding date_type values for maximums
         # Ignore if date_type is not present in the original DataFrame
         max_date_type = {
-            col: original_df.loc[original_df[col].idxmax(), date_type]
+            col: safe_get_date(original_df, col, date_type, "max")
             for col in df.columns
             if date_type in original_df.columns
         }
@@ -1223,7 +1237,7 @@ def calculate_statistics(df, statistics, date_type):
         # Use original DataFrame to get the corresponding date_type values for minimums
         # Ignore if date_type is not present in the original DataFrame
         min_date_type = {
-            col: original_df.loc[original_df[col].idxmin(), date_type]
+            col: safe_get_date(original_df, col, date_type, "min")
             for col in df.columns
             if date_type in original_df.columns
         }
