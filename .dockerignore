@@ -1,0 +1,11 @@
+node_modules
+**/__pycache__
+**/*.pyc
+.git
+.DS_Store
+dist
+.vscode
+.github
+apppy
+build
+**/target
