@@ -158,7 +158,9 @@
                 <li>To clear a filter, deselect all values for that column.</li>
                 <li>Filtering is available in both Project/Table and Graph sections and works independently for each
                     view.</li>
-                <li>For Project/Table, if you want to filter the statistics table, first fetch data with your desired statistics selected (without filters), then use the Filter Columns button to filter the main table. After applying filters, fetch data again to update the statistics for the filtered subset.
+                <li>For Project/Table, if you want to filter the statistics table, first fetch data with your desired
+                    statistics selected (without filters), then use the Filter Columns button to filter the main table.
+                    After applying filters, fetch data again to update the statistics for the filtered subset.
                 </li>
             </ul>
 
@@ -376,8 +378,10 @@
             </ol>
 
             <div style="margin-bottom: 1em;">
-                <strong>Important:</strong> For all maps, after clicking <strong>Layers/Shapefiles/Rasterfiles</strong>, <u>wait for the
-                    green popup message at the bottom right</u> (from the message box) that says the GeoJSON loaded before fetching the map. This ensures all geospatial data and layers are fully loaded and
+                <strong>Important:</strong> For all maps, after clicking <strong>Layers/Shapefiles/Rasterfiles</strong>,
+                <u>wait for the
+                    green popup message at the bottom right</u> (from the message box) that says the GeoJSON loaded
+                before fetching the map. This ensures all geospatial data and layers are fully loaded and
                 ready for use.
             </div>
 
@@ -505,11 +509,11 @@
                         <li><strong>Desktop App:</strong> You select folders directly from your local filesystem.
                             It's
                             available for installation from the <a
-                                href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer/releases/latest"
-                                target="_blank">GitHub Releases page</a>.</li>
+                                href="https://github.com/shahviransh/Nutri-View/releases/latest" target="_blank">GitHub
+                                Releases page</a>.</li>
                         <li><strong>Web App:</strong> You *upload* folders to the server. It's accessible via a web
                             browser. Find the link on the project's main <a
-                                href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer" target="_blank">GitHub
+                                href="https://github.com/shahviransh/Nutri-View" target="_blank">GitHub
                                 page</a>
                             (check the About).</li>
                     </ul>
@@ -542,17 +546,16 @@
                 <li><strong>Web App Issues:</strong> If experiencing problems with the web app, consider installing
                     and
                     using the Desktop App. Download links and installation instructions can be found on the <a
-                        href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer" target="_blank">project's GitHub
+                        href="https://github.com/shahviransh/Nutri-View" target="_blank">project's GitHub
                         page</a>. Alternatively, contact the administrator using the "Contact Admin" button on the
                     Login
                     page.</li>
                 <li><strong>Desktop App Issues:</strong> If experiencing installation or runtime problems with the
                     Desktop App, ensure you have downloaded the correct version for your operating system and
-                    architecture (check the <a
-                        href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer#%EF%B8%8F-installation"
+                    architecture (check the <a href="https://github.com/shahviransh/Nutri-View#%EF%B8%8F-installation"
                         target="_blank">Installation Guide on GitHub</a>). You could also try accessing the Web App
-                    (find the link on the <a href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer"
-                        target="_blank">GitHub page</a>) as an alternative.</li>
+                    (find the link on the <a href="https://github.com/shahviransh/Nutri-View" target="_blank">GitHub
+                        page</a>) as an alternative.</li>
                 <li><strong>General Issues:</strong> Sometimes, simply refreshing the application (Right-click ->
                     Refresh or Ctrl+R/Cmd+R) or restarting it can resolve temporary glitches.</li>
             </ul>
@@ -565,10 +568,10 @@
                     password
                     requests.</li>
                 <li><strong>General Help/Bugs:</strong> Refer to the project's main <a
-                        href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer" target="_blank">GitHub
+                        href="https://github.com/shahviransh/Nutri-View" target="_blank">GitHub
                         repository</a>,
-                    particularly the README file and the <a
-                        href="https://github.com/shahviransh/ECCC-IMWEBs-Viewer/issues" target="_blank">Issues
+                    particularly the README file and the <a href="https://github.com/shahviransh/Nutri-View/issues"
+                        target="_blank">Issues
                         section</a>.</li>
             </ul>
         </section>
