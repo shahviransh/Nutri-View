@@ -2566,11 +2566,6 @@ def convert_excels_to_db_service(excel_files, data):
             # If BMP, save the final DataFrame to the database
             if "BMP" in db_name and not df_final.empty:
                 conn = sqlite3.connect(db_path)
-                df_final["Date"] = (
-                    datetime.strptime(current_year, "%Y-%m-%d").date()
-                    if current_year != "Unknown"
-                    else current_year
-                )
                 # Reorder columns to ensure consistent structure
                 cols = [
                     "Date",
