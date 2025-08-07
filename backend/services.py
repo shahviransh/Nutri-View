@@ -2636,8 +2636,6 @@ def convert_to_gpkg_service(uploaded_files):
         except Exception:
             continue
 
-    output_files = []
-
     # Save all files to Config.TEMPDIR
     for file in uploaded_files:
         file_path = os.path.join(Config.TEMPDIR, file.filename)
@@ -2647,7 +2645,7 @@ def convert_to_gpkg_service(uploaded_files):
     base_names = set(os.path.splitext(f.filename)[0] for f in uploaded_files)
 
     output_gpkg = os.path.join(Config.BASE_DIR, "Geospatial/GeoDB.gpkg")
-    first_layer_created = False
+    first_layer_created = os.path.exists(output_gpkg)
 
     def delete_layer_if_exists(gpkg_path, layer_name):
         # Check if layer exists
