@@ -888,6 +888,7 @@ export default {
     text-align: center;
     color: var(--text-color);
     animation: fadeIn 0.3s ease-in-out;
+    max-height: 90vh;
     overflow-y: auto;
 }
 
