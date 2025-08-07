@@ -354,7 +354,7 @@ body,
 
 /* Theme variables */
 .light {
-  --top-bar-bg: #b85b14;
+  --top-bar-bg: #2693b7;
   --top-bar-text: #fff;
   --taskbar-bg: #35495e;
   --taskbar-text: #fff;
