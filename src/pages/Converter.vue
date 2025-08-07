@@ -321,6 +321,7 @@ export default {
                         error: error.response.data?.error || error.response.statusText || "An error occurred",
                         status: error.response.status
                     };
+                    this.loading = false;
                     return;
                 }
             }
@@ -350,18 +351,22 @@ export default {
                 }
 
                 try {
+                    this.loading = true;
                     const geoResp = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/convert_to_gpkg`, geoForm, {
                         headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
                     });
 
                     if (!this.response) this.response = {};
                     this.response["GeoDB.gpkg"] = geoResp.data;
+                    this.loading = false;
                 } catch (error) {
                     if (!this.response) this.response = {};
                     this.response["GeoDB.gpkg"] = {
                         error: error.response?.data?.error || error.response?.statusText || "An error occurred",
                         status: error.response?.status
                     };
+                    this.loading = false;
+                    return;
                 }
             }
         },
