@@ -29,7 +29,7 @@ const store = createStore({
       start: "",
       end: "",
     },
-    modelFolder: "Jenette_Creek_Watershed",
+    modelFolder: "Databases",
     dateType: "",
     selectedMethod: ["Equal"],
     selectedStatistics: ["None"],
