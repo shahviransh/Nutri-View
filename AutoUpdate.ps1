@@ -1,6 +1,6 @@
-$projectDir = "C:\Nutiri-View"
+$projectDir = "C:\Nutri-View"
 $backendScript = "$projectDir\backend\apppy.py"
-$serviceName = "Nutiri-View-Backend"
+$serviceName = "Nutri-View-Backend"
 
 Set-Location $projectDir
 
