@@ -215,6 +215,32 @@ def register_routes(app, cache):
 
         if not files:
             return jsonify({"error": "No files uploaded"})
+        
+        def allowed_file(filename):
+            """
+            Check if the file is allowed based on its extension.
+            """
+            ALLOWED_EXTENSIONS = {
+                "shp",
+                "tif",
+                "gpkg",
+                "shx",
+                "dbf",
+                "cpg",
+                "prj",
+                "sbn",
+                "sbx", 
+                "db3",
+                "tiff",
+                "xml"
+            }
+            return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+        
+        # Validate the uploaded files
+        for file in files:
+            if not allowed_file(file.filename):
+                return jsonify({"error": f"File type not allowed: {file.filename}"}), 400
 
         # Loop through each file and save it in the corresponding folder
         for file in files:
