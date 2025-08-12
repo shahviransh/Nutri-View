@@ -579,6 +579,10 @@ def fetch_data_from_db(
     return round_df_except_latlon(df)
 
 
+def is_running_as_pyinstaller():
+    return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
+
+
 # Helper function to save data to CSV or text formats
 def save_to_file(
     dataframe1,
@@ -601,7 +605,7 @@ def save_to_file(
     # Set the file path
     file_path = (
         safe_join(Config.PATHFILE_EXPORT, export_path)
-        if not os.path.isabs(export_path) or os.environ.get("WAITRESS") == "1"
+        if (not os.path.isabs(export_path) or os.environ.get("WAITRESS") == "1") and not is_running_as_pyinstaller()
         else export_path
     )
 
@@ -1025,6 +1029,7 @@ def get_files_and_folders(data):
     if (
         os.path.isabs(folder_path)
         and data.get("is_tauri", None) == "true"
+        and is_running_as_pyinstaller()
         and os.environ.get("WAITRESS") != "1"
     ):
         # Update Config.PATHFILE to point to the parent directory of the provided absolute path
