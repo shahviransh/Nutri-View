@@ -605,7 +605,7 @@ def save_to_file(
     # Set the file path
     file_path = (
         safe_join(Config.PATHFILE_EXPORT, export_path)
-        if (not os.path.isabs(export_path) or os.environ.get("WAITRESS") == "1") and not is_running_as_pyinstaller()
+        if not os.path.isabs(export_path) or os.environ.get("WAITRESS") == "1" or not is_running_as_pyinstaller()
         else export_path
     )
 
