@@ -788,7 +788,7 @@ def save_to_file(
         ax1.set_prop_cycle(cycler(color=plt.cm.tab10.colors))
         # Check if ax2 will have plots
         ax2_has_data = any(
-            column_graph["name"] not in primary_axis_columns
+            column_graph["name"] in secondary_axis_columns
             for column_graph in multi_graph_type
         )
         if ax2_has_data:
@@ -796,6 +796,8 @@ def save_to_file(
 
         for i, column_graph in enumerate(multi_graph_type):
             column = column_graph["name"]
+            if dataframe1[column].dtype == "object":
+                continue
             plot_func = getattr(
                 ax1 if column in primary_axis_columns else ax2,
                 GRAPH_TYPE_MAPPING[column_graph["type"]],
@@ -831,15 +833,12 @@ def save_to_file(
         # Customize axes
         ax1.set_xlabel(date_type)
         ax1.set_ylabel("Values (Smaller Values)")
-        ax1.xaxis.set_major_locator(MaxNLocator(nbins=30))  # Scale x&y-axis ticks
         ax1.yaxis.set_major_locator(LinearLocator(numticks=8))
         ax1.grid(visible=True, linestyle="--", alpha=0.6)
 
         if ax2_has_data:
             ax2.set_ylabel("Values (Larger Values)")
-            ax2.xaxis.set_major_locator(
-                MaxNLocator(nbins=30)
-            )  # Ensure same number of x&y-axis ticks on both axes
+            # Ensure same number of y-axis ticks on both axes
             ax2.yaxis.set_major_locator(LinearLocator(numticks=8))
             ax2.grid(visible=True, linestyle="--", alpha=0.6)
 
