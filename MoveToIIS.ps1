@@ -1,6 +1,6 @@
 $projectDir = "C:\Nutri-View"
 $sourceDir = "$projectDir\dist"
-$destDir = "C:\inetpub\wwwroot\Nutri-View"
+$destDir = "C:\inetpub\wwwroot"
 
 Set-Location $projectDir
 
