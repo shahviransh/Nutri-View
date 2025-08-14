@@ -68,7 +68,6 @@
                         required></textarea>
                 </div>
                 <input type="hidden" name="_cc" :value="cc" />
-                <input type="hidden" name="_next" :value="thankYouUrl">
                 <input type="hidden" name="_subject" value="Contact from NutriView Form">
                 <input type="hidden" name="_template" value="box">
                 <button type="submit" class="submitButton">Send</button>
@@ -112,7 +111,6 @@ export default {
             formSubmitUrl: `https://formsubmit.co/${import.meta.env.VITE_FORM_SUBMIT_ID}`,
             sitekey: import.meta.env.VITE_HCAPTCHA_SITE_KEY,
             cc: import.meta.env.VITE_RECIPIENTS,
-            thankYouUrl: `${import.meta.env.VITE_API_BASE_URL}/thank-you.html`,
             showHelpPopup: false
         };
     },
