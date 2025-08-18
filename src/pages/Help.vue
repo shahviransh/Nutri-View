@@ -33,8 +33,7 @@
             </p>
             <p>
                 NutriView is a new CWA in-house developed software tool that helps manage and utilize the large volume
-                of data related to implementation of best management practices (BMPs) supported by a $49.4 million
-                (2024-2028) federal investment under the Lake Erie Precision Conservation sub-stream of the Great
+                of data related to implementation of best management practices (BMPs). supported by a federal investment under the Lake Erie Precision Conservation sub-stream of the Great
                 Lakes Freshwater Ecosystem Initiative (FEI).
             </p>
             <p>

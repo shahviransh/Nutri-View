@@ -45,12 +45,6 @@
 
 **Nutri-View** is a tool designed for exploring, analyzing, and visualizing environmental model data. It supports both tabular and geospatial data formats and provides features for data filtering, aggregation, calculation, graphing, mapping, and exporting.
 
-NutriView is a new in-house software tool developed by the Canada Water Agency (CWA) to help manage and utilize the large volume of data associated with the implementation of Best Management Practices (BMPs). This work is supported by a $49.4 million (2024–2028) federal investment under the Lake Erie Precision Conservation sub-stream of the Great Lakes Freshwater Ecosystem Initiative (FEI).
-
-The tool integrates headline program performance measures with detailed information on thousands of implemented BMPs. Once deployed on the cloud, NutriView will enable authorized CWA staff to visually explore data, generate dynamic maps, and monitor trends—particularly those related to the transition toward precision conservation approaches for nutrient management.
-
-In addition, NutriView will facilitate secure data sharing with selected and permitted members of the research community, beginning with ECCC Science and Technology (S&T). This will support research, enhance modeling efforts, and help inform CWA’s future programming decisions to restore and protect Lake Erie water quality.
-
 Built with **Tauri**, **Vue 3**, and **Flask**, this application provides a rich, interactive, and offline-capable experience for analyzing tabular and geospatial data.
 
 ### 🔑 Key Features
