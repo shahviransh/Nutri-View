@@ -16,7 +16,7 @@
 
 ---
 
-## 📚 Table of Contents
+## Table of Contents
 
 <details>
   <summary>Click to expand</summary>
@@ -41,13 +41,13 @@
 
 ---
 
-## 🧠 About The Project
+## About The Project
 
 **Nutri-View** is a tool designed for exploring, analyzing, and visualizing environmental model data. It supports both tabular and geospatial data formats and provides features for data filtering, aggregation, calculation, graphing, mapping, and exporting.
 
 Built with **Tauri**, **Vue 3**, and **Flask**, this application provides a rich, interactive, and offline-capable experience for analyzing tabular and geospatial data.
 
-### 🔑 Key Features
+### Key Features
 
 - **Cross-Platform Support:** Packages available for Windows, macOS, and Linux.
 - **Dynamic Visualization:** Interactive charts using ECharts and maps using Leaflet.
@@ -59,7 +59,7 @@ Built with **Tauri**, **Vue 3**, and **Flask**, this application provides a rich
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=x69xOCFa_0c">
@@ -69,7 +69,7 @@ Built with **Tauri**, **Vue 3**, and **Flask**, this application provides a rich
 
 ![Diagram](https://github.com/shahviransh/Nutri-View/blob//main/Diagram.png)
 
-### 📦 Structure
+### Structure
 
 - **Frontend (Vue 3):**
   - UI components in `src/components/`
@@ -87,15 +87,15 @@ Built with **Tauri**, **Vue 3**, and **Flask**, this application provides a rich
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### 📥 Installation
+### Installation
 
 Download the latest release from the [GitHub Releases Page](https://github.com/shahviransh/Nutri-View/releases/latest).
 
 ### Download for your platform
 
-#### 🐧 **Linux**
+#### **Linux**
 
 - **Available Packages**: `.deb`, `.rpm`, or `.AppImage`
   - **`.deb`**: Suitable for Debian-based distributions like **Ubuntu**, **Linux Mint**, or **Kali**. Install with:
@@ -119,14 +119,14 @@ Download the latest release from the [GitHub Releases Page](https://github.com/s
 
 - Once installed, you can launch the application from your application menu or terminal.
 
-#### ✅ **Windows**
+#### **Windows**
 
 - **Available Packages**: `.msi` or `.exe`
   - **`.msi`**: Requires admin privileges for installation. Double-click the file and follow the setup instructions. The application will launch automatically after installation.
   - **`.exe`**: Suitable for users without admin rights. Run the `.exe` file, and the application will launch immediately.
 - After installation, you can find the application in your Start Menu or Desktop.
 
-#### 🍎 **macOS**
+#### **macOS**
 
 - **Available Packages**: `.dmg` or `.app.tar.gz`
   - **Intel vs ARM**: Check your Mac's architecture before downloading.  
@@ -143,20 +143,20 @@ Download the latest release from the [GitHub Releases Page](https://github.com/s
 
 Launch the Application: The application connects the Vue 3 frontend with the Flask backend and should be ready to use.
 
-## ⚠️ Common Issues
+## Common Issues
 
-### ❌ Can't Find Exported Files or Export Fails: “Permission Denied” or Files Not Saved
+### Can't Find Exported Files or Export Fails: “Permission Denied” or Files Not Saved
 
 If you're trying to **export files (e.g., CSV, PNG, SHP, etc.)**, and the operation fails or you see a **permission error**, it's likely due to **write restrictions** on the default export directory. If you **can’t find the exported files**, see below.
 
 > By default, the backend saves export files **relative to the Nutri-View app’s installation directory**, typically at: `{Nutri-View App Path}/_up_/backend/apppy/_internal/dataExport`
 
-### 💡 Why This Happens
+### Why This Happens
 
 - If the app is installed in a **system directory** (like `/usr/lib/` or `Program Files`), the backend might not have **write access** there **without admin privileges**.
 - Since the backend writes export files **relative to its own location**, it fails if that location is **read-only** for the current user.
 
-### ✅ Solution
+### Solution
 
 To avoid export issues:
 
@@ -166,37 +166,37 @@ To avoid export issues:
    - Documents
    - A custom folder inside the user's home directory (e.g., `~/IMWEBs-Exports`)
 
-## 🧹 Freeing Up Space After Uninstalling
+## Freeing Up Space After Uninstalling
 
 After uninstalling **Nutri-View**, you can delete leftover temporary files to free up space. Each platform has a **TempFiles** folder in the user data folder that can be safely deleted.
 
 Run the following commands to delete the **TempFiles** folder:
 
-### 🐧 **Linux**
+### **Linux**
 
 ```bash
 rm -rf ~/.local/share/Nutri-View/TempFiles
 ```
 
-### ✅ Windows
+### Windows
 
 ```powershell
 Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Nutri-View\TempFiles"
 ```
 
-### 🍎 macOS
+### macOS
 
 ```bash
 rm -rf ~/Library/Application\ Support/Nutri-View/TempFiles
 ```
 
-## 📄 Technical Report
+## Technical Report
 
 For a detailed explanation of the application's architecture, data processing workflows, and design decisions, please refer to the full technical report:
 
-[👉 Download the Nutri-View Technical Report (.docx)](https://github.com/shahviransh/Nutri-View/raw/refs/heads/main/Technical%20Report.docx)
+[Download the Nutri-View Technical Report (.docx)](https://github.com/shahviransh/Nutri-View/raw/refs/heads/main/Technical%20Report.docx)
 
-## 🙌 Acknowledgments
+## Acknowledgments
 
 - Core Technologies:
   - Tauri, Rust
