@@ -11,6 +11,11 @@ class Config:
     )
     conda_prefix = os.environ.get("CONDA_PREFIX")
     lib = "Library" if sys.platform == "win32" else ""
+    PATH = (
+        os.path.join(sys._MEIPASS, lib, "bin")
+        if getattr(sys, "frozen", False)
+        else os.path.join(conda_prefix, lib, "bin")
+    )
     PROJ_LIB = (
         os.path.join(sys._MEIPASS, lib, "share/proj")
         if getattr(sys, "frozen", False)
