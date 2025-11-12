@@ -72,6 +72,7 @@ jobs:
           conda run -n venv pyinstaller backend/apppy.py -y --distpath backend/ --specpath backend/ --workpath backend/build --name apppy `
             --add-data "$env:CONDA/envs/venv/Library/share/proj;Library/share/proj" `
             --add-data "$env:CONDA/envs/venv/Library/share/gdal;Library/share/gdal" `
+            --add-data "$env:CONDA/envs/venv/Library/bin;Library/bin" `
             --hidden-import=pyogrio._geometry --hidden-import=pyogrio._io --collect-data=numpy `
             --hidden-import=sklearn._cyutility --collect-data=sklearn;
   
@@ -83,6 +84,7 @@ jobs:
           conda run -n venv pyinstaller backend/apppy.py -y --distpath backend/ --specpath backend/ --workpath backend/build --name apppy \
           --add-data "$CONDA/envs/venv/share/proj:share/proj" \
           --add-data "$CONDA/envs/venv/share/gdal:share/gdal" \
+          --add-data "$CONDA/envs/venv/bin:bin" \
           --hidden-import=pyogrio._geometry --hidden-import=pyogrio._io --collect-data=numpy \
           --hidden-import=sklearn._cyutility --collect-data=sklearn
         shell: bash

@@ -32,9 +32,6 @@ global_dbs_tables_columns = {}
 os.environ["PROJ_LIB"] = Config.PROJ_LIB
 os.environ["GDAL_DATA"] = Config.GDAL_DATA
 os.environ["PATH"] += os.pathsep + Config.PATH
-print("GDAL_DATA:", os.environ["GDAL_DATA"])
-print("PROJ_LIB:", os.environ["PROJ_LIB"])
-print("PATH:", os.environ["PATH"])
 bmp_db_path_global = None
 
 
