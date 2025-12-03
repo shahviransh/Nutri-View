@@ -33,4 +33,4 @@ if __name__ == "__main__":
         os.environ["WAITRESS"] = "1"
         serve(app, host="0.0.0.0", port=5000)
     else:
-        app.run(debug=True)
+        app.run()
