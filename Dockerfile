@@ -8,7 +8,7 @@ COPY backend/requirements.txt .
 
 # Create Conda environment
 RUN conda create -n venv python=3.12 -y && \
-    conda install -n venv -c conda-forge gdal geopandas pyogrio -y
+    conda install -n venv -c conda-forge gdal geopandas pyogrio libgomp pyinstaller -y
 
 # Set environment path so conda env is default
 ENV PATH /opt/conda/envs/venv/bin:$PATH
