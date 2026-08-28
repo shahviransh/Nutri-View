@@ -6,9 +6,9 @@ WORKDIR /app
 # Copy Python dependencies
 COPY backend/requirements.txt .
 
-# Create Conda environment
-RUN conda create -n venv python=3.12 -y && \
-    conda install -n venv -c conda-forge gdal geopandas pyogrio libgomp pyinstaller -y
+# Create Conda environment using only conda-forge to avoid Anaconda channel ToS prompts
+RUN conda create -n venv -c conda-forge --override-channels python=3.12 -y && \
+    conda install -n venv -c conda-forge --override-channels gdal geopandas pyogrio libgomp pyinstaller -y
 
 # Set environment path so conda env is default
 ENV PATH /opt/conda/envs/venv/bin:$PATH
